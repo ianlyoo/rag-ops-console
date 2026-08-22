@@ -69,8 +69,12 @@ def test_ingest_idempotent_no_duplicate() -> None:
 
 def test_load_synthetic_chunks_from_file() -> None:
     """A 레포 synthetic_qa.jsonl 로드가 10개 유니크 chunk를 반환해야 한다."""
-    from rag.vector_store import load_synthetic_chunks
+    import pytest
 
+    from rag.vector_store import _resolve_synthetic_qa_path, load_synthetic_chunks
+
+    if _resolve_synthetic_qa_path() is None:
+        pytest.skip("synthetic_qa.jsonl not present in isolated clone — skip (B boundary: consume A data when available)")
     chunks = load_synthetic_chunks()
     # A 레포에는 10개 문서가 있으므로 유니크 chunk는 10개
     assert len(chunks) == 10
