@@ -26,8 +26,8 @@
       "metadata": {
         "doc_id": "07_customer_support",
         "difficulty": "hard",
-        "chunk_id": "07_customer_support::chunk-0000",
-        "category": "support"
+        "category": "support",
+        "chunk_id": "07_customer_support::chunk-0000"
       },
       "rerank_score": 0.4569172620773315
     },
@@ -38,10 +38,10 @@
       "score": 0.413227379322052,
       "distance": 0.586772620677948,
       "metadata": {
-        "difficulty": "medium",
         "doc_id": "10_finance_expense",
+        "chunk_id": "10_finance_expense::chunk-0000",
         "category": "finance",
-        "chunk_id": "10_finance_expense::chunk-0000"
+        "difficulty": "medium"
       },
       "rerank_score": 0.413227379322052
     },
@@ -52,8 +52,8 @@
       "score": 0.37387996912002563,
       "distance": 0.6261200308799744,
       "metadata": {
-        "doc_id": "08_data_privacy",
         "difficulty": "easy",
+        "doc_id": "08_data_privacy",
         "category": "privacy",
         "chunk_id": "08_data_privacy::chunk-0000"
       },
@@ -66,10 +66,10 @@
       "score": 0.20874106884002686,
       "distance": 0.7912589311599731,
       "metadata": {
-        "category": "hr",
-        "chunk_id": "04_hr_vacation::chunk-0000",
         "difficulty": "medium",
-        "doc_id": "04_hr_vacation"
+        "chunk_id": "04_hr_vacation::chunk-0000",
+        "doc_id": "04_hr_vacation",
+        "category": "hr"
       },
       "rerank_score": 0.25874106884002684
     },
@@ -81,9 +81,9 @@
       "distance": 0.7969642877578735,
       "metadata": {
         "difficulty": "easy",
-        "category": "product",
+        "doc_id": "02_product_faq",
         "chunk_id": "02_product_faq::chunk-0000",
-        "doc_id": "02_product_faq"
+        "category": "product"
       },
       "rerank_score": 0.20303571224212646
     }
@@ -122,8 +122,8 @@
       "metadata": {
         "doc_id": "07_customer_support",
         "difficulty": "hard",
-        "chunk_id": "07_customer_support::chunk-0000",
-        "category": "support"
+        "category": "support",
+        "chunk_id": "07_customer_support::chunk-0000"
       },
       "rerank_score": 0.4569172620773315
     },
@@ -134,10 +134,10 @@
       "score": 0.413227379322052,
       "distance": 0.586772620677948,
       "metadata": {
-        "difficulty": "medium",
         "doc_id": "10_finance_expense",
+        "chunk_id": "10_finance_expense::chunk-0000",
         "category": "finance",
-        "chunk_id": "10_finance_expense::chunk-0000"
+        "difficulty": "medium"
       },
       "rerank_score": 0.413227379322052
     },
@@ -148,8 +148,8 @@
       "score": 0.37387996912002563,
       "distance": 0.6261200308799744,
       "metadata": {
-        "doc_id": "08_data_privacy",
         "difficulty": "easy",
+        "doc_id": "08_data_privacy",
         "category": "privacy",
         "chunk_id": "08_data_privacy::chunk-0000"
       },
@@ -162,10 +162,10 @@
       "score": 0.20874106884002686,
       "distance": 0.7912589311599731,
       "metadata": {
-        "category": "hr",
-        "chunk_id": "04_hr_vacation::chunk-0000",
         "difficulty": "medium",
-        "doc_id": "04_hr_vacation"
+        "chunk_id": "04_hr_vacation::chunk-0000",
+        "doc_id": "04_hr_vacation",
+        "category": "hr"
       },
       "rerank_score": 0.25874106884002684
     },
@@ -177,9 +177,9 @@
       "distance": 0.7969642877578735,
       "metadata": {
         "difficulty": "easy",
-        "category": "product",
+        "doc_id": "02_product_faq",
         "chunk_id": "02_product_faq::chunk-0000",
-        "doc_id": "02_product_faq"
+        "category": "product"
       },
       "rerank_score": 0.20303571224212646
     }
