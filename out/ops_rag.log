@@ -1,0 +1,202 @@
+[vector_store] all 10 docs already ingested — skip
+[run] query: 환불 정책
+[run] StateGraph nodes: retrieve -> grade -> (rewrite -> retrieve) -> generate -> human_review
+[retrieve] query='환불 정책' (iterations=0)
+[retrieve] found 5 chunks
+  - 07_customer_support::chunk-0000 score=0.357 rerank=0.457
+  - 10_finance_expense::chunk-0000 score=0.413 rerank=0.413
+  - 08_data_privacy::chunk-0000 score=0.374 rerank=0.374
+[grade] top_score=0.457 overlap=2 threshold_score=0.25
+[grade] -> relevant
+[generate] answer_len=470 citations=2
+  citations: ['07_customer_support::chunk-0000', '10_finance_expense::chunk-0000']
+[human_review] token overlap ratio=0.89
+[human_review] -> approved
+
+[result] final JSON:
+{
+  "query": "환불 정책",
+  "retrieved": [
+    {
+      "doc_id": "07_customer_support",
+      "chunk_id": "07_customer_support::chunk-0000",
+      "text": "# 고객 지원 운영 가이드 ## 채널 - 이메일 support@acme.example, 채팅 위젯(웹/앱), 전화 1588-0000 (평일 09:00–18:00 KST). ## 티켓 분류 - 일반문의, 버그제보, 결제/환불, 계정/보안. - 우선순위: P1(서비스 장애), P2(기능 오류), P3(일반). ## SLA - P1: 1시간 내 첫 응답, 4시간 내 해결 목표. - P2: 4시간 응답, 24시간 해결. - P3: 24시간 응답. ## 환불 정책 - 결제 후 7일 이내 전액 환불, 이후 부분 환불(사용일수 차감). - 환불 요청은 결제수단 동일 수단으로 3–5영업일 처리. ## 에스컬레이션 - P1은 즉시 엔지니어링 온콜 호출, Slack #support-escalation. 키워드: 고객지원, SLA, P1 P2 P3, 환불 7일, 에스컬레이션, 온콜.",
+      "score": 0.35691726207733154,
+      "distance": 0.6430827379226685,
+      "metadata": {
+        "doc_id": "07_customer_support",
+        "difficulty": "hard",
+        "chunk_id": "07_customer_support::chunk-0000",
+        "category": "support"
+      },
+      "rerank_score": 0.4569172620773315
+    },
+    {
+      "doc_id": "10_finance_expense",
+      "chunk_id": "10_finance_expense::chunk-0000",
+      "text": "# 경비 청구 및 재무 가이드 ## 청구 한도 - 식대 1인 3만원, 교통비 실비, 숙박 1박 15만원 (수도권) / 12만원 (지방). - 월 한도: 팀원 50만원, 매니저 100만원. ## 절차 1. 영수증 스캔 후 경비 시스템(expenses.acme.example)에 업로드. 2. 매니저 승인 → 재무 승인 (영업일 2일 이내). 3. 지급: 매월 15일/말일 정산. ## 금지 항목 - 주류, 개인 용품, 벌금/과태료는 청구 불가. ## 출장 - 국내 출장 사전 승인 필요, 해외 출장은 2주 전 임원 승인. - 출장 보고서 5일 내 제출. ## 문의 finance@acme.example, Slack #finance-help 키워드: 경비청구, 식대 3만원, 숙박 15만원, 월한도 50만원, 영수증, 재무승인.",
+      "score": 0.413227379322052,
+      "distance": 0.586772620677948,
+      "metadata": {
+        "difficulty": "medium",
+        "doc_id": "10_finance_expense",
+        "category": "finance",
+        "chunk_id": "10_finance_expense::chunk-0000"
+      },
+      "rerank_score": 0.413227379322052
+    },
+    {
+      "doc_id": "08_data_privacy",
+      "chunk_id": "08_data_privacy::chunk-0000",
+      "text": "# Data Privacy & GDPR Compliance ## Principles - Lawfulness, purpose limitation, data minimization, accuracy, storage limitation, integrity. ## User Rights - Access, rectification, erasure (\"right to be forgotten\"), portability, objection. - Requests handled within 30 days via privacy@acme.example. ## Retention - Account data: until deletion + 30 days backup purge. - Logs: 90 days, then anonymized. - Marketing consents: until withdrawn. ## DPA & Transfers - Standard Contractual Clauses (SCC) for non-adequate countries. - Data Processing Agreement available at acme.example/dpa. ## Breach Notification - Supervisory authority within 72 hours, affected users without undue delay. Keywords: GDPR, right to be forgotten, 30 days, retention 90 days, SCC, breach 72 hours.",
+      "score": 0.37387996912002563,
+      "distance": 0.6261200308799744,
+      "metadata": {
+        "doc_id": "08_data_privacy",
+        "difficulty": "easy",
+        "category": "privacy",
+        "chunk_id": "08_data_privacy::chunk-0000"
+      },
+      "rerank_score": 0.37387996912002563
+    },
+    {
+      "doc_id": "04_hr_vacation",
+      "chunk_id": "04_hr_vacation::chunk-0000",
+      "text": "# 휴가 및 연차 정책 (Acme Corp Korea) ## 연차 부여 - 입사 1년 미만: 1개월 개근 시 1일, 최대 11일. - 1년 이상: 15일 기본 + 근속 2년마다 1일 추가, 최대 25일. ## 휴가 종류 - 연차, 반차(오전/오후 4시간), 병가(유급 5일/年, 진단서 필요), 경조사(결혼 5일, 부모상 5일). ## 신청 절차 - HR 포털에서 최소 3영업일 전 신청, 팀장 승인 필요. - 긴급 병가는 사후 24시간 내 증빙 제출. ## 연차 소진 - 미사용 연차는 익년 3월까지 이월 가능, 이후 소멸. - 연차 촉진: 12월 1일까지 미사용 연차 사용 계획서 제출 요청. ## 문의 hr-kr@acme.example, Slack #hr-korea 키워드: 연차, 반차, 병가, 경조사, HR 포털, 연차촉진, 이월.",
+      "score": 0.20874106884002686,
+      "distance": 0.7912589311599731,
+      "metadata": {
+        "category": "hr",
+        "chunk_id": "04_hr_vacation::chunk-0000",
+        "difficulty": "medium",
+        "doc_id": "04_hr_vacation"
+      },
+      "rerank_score": 0.25874106884002684
+    },
+    {
+      "doc_id": "02_product_faq",
+      "chunk_id": "02_product_faq::chunk-0000",
+      "text": "# Nimbus Note — Product FAQ ## What is Nimbus Note? Nimbus Note is a cloud-based note-taking and task management app with real-time collaboration. ## Pricing - Free: up to 100 notes, 1GB storage. - Pro: $8/month, unlimited notes, 50GB, version history 1 year. - Team: $15/user/month, SSO, admin console, priority support. ## Sync & Offline - Syncs across Web, iOS, Android, Desktop (Windows/macOS). - Offline mode caches last 500 notes; changes sync when online. ## Export - Export to Markdown, PDF, or HTML. Bulk export up to 1000 notes at once. ## Collaboration - Share with view/comment/edit permissions. Comment threads resolve per paragraph. ## Security - Encryption at rest (AES-256) and in transit (TLS 1.3). 2FA via TOTP. ## Support - Help center: help.nimbus.example, email: support@nimbus.example. - Response SLA: Free 72h, Pro 24h, Team 4h. Keywords: Nimbus Note, pricing, sync, offline, export, collaboration, encryption, support SLA.",
+      "score": 0.20303571224212646,
+      "distance": 0.7969642877578735,
+      "metadata": {
+        "difficulty": "easy",
+        "category": "product",
+        "chunk_id": "02_product_faq::chunk-0000",
+        "doc_id": "02_product_faq"
+      },
+      "rerank_score": 0.20303571224212646
+    }
+  ],
+  "graded": "relevant",
+  "rewritten_query": null,
+  "generation": "환불 정책에 대해 안내드립니다. # 고객 지원 운영 가이드 ## 채널 - 이메일 support@acme.example, 채팅 위젯(웹/앱), 전화 1588-0000 (평일 09:00–18:00 KST). ## 티켓 분류 - 일반문의, 버그제보, 결제/환불, 계정/보안. - 우선순위: P1(서비스 장애), P2(기능 오류), P3(일반). ## SLA - P1: 1시간 내 첫 응답, 4시간 내 해결 목표. - P2: 4시간 응답, 24시간 해결. - P3: 24시간 응답. ## 환불 정책 - 결제 후 7일 이내 전액 환불, 이후 부분 환불(사용일수 차감). - 환불 요청은 결제수단 동일 수단으로 3–5영업일 처리. ## 에스컬레이션 - P1은 즉시 엔지니어링 온콜 호출, Slack #support-escalation. 키워드: 고객지원, S 추가 문의는 support@acme.example 또는 1588-0000으로 연락해 주세요.",
+  "citations": [
+    {
+      "doc_id": "07_customer_support",
+      "chunk_id": "07_customer_support::chunk-0000"
+    },
+    {
+      "doc_id": "10_finance_expense",
+      "chunk_id": "10_finance_expense::chunk-0000"
+    }
+  ],
+  "review_status": "approved",
+  "iterations": 0
+}
+
+[citation] PASS — 2 citations present
+[review_status] approved
+[sheets] appended 1 rows -> out/sheets_mock.csv
+
+[final_result]
+{
+  "query": "환불 정책",
+  "retrieved": [
+    {
+      "doc_id": "07_customer_support",
+      "chunk_id": "07_customer_support::chunk-0000",
+      "text": "# 고객 지원 운영 가이드 ## 채널 - 이메일 support@acme.example, 채팅 위젯(웹/앱), 전화 1588-0000 (평일 09:00–18:00 KST). ## 티켓 분류 - 일반문의, 버그제보, 결제/환불, 계정/보안. - 우선순위: P1(서비스 장애), P2(기능 오류), P3(일반). ## SLA - P1: 1시간 내 첫 응답, 4시간 내 해결 목표. - P2: 4시간 응답, 24시간 해결. - P3: 24시간 응답. ## 환불 정책 - 결제 후 7일 이내 전액 환불, 이후 부분 환불(사용일수 차감). - 환불 요청은 결제수단 동일 수단으로 3–5영업일 처리. ## 에스컬레이션 - P1은 즉시 엔지니어링 온콜 호출, Slack #support-escalation. 키워드: 고객지원, SLA, P1 P2 P3, 환불 7일, 에스컬레이션, 온콜.",
+      "score": 0.35691726207733154,
+      "distance": 0.6430827379226685,
+      "metadata": {
+        "doc_id": "07_customer_support",
+        "difficulty": "hard",
+        "chunk_id": "07_customer_support::chunk-0000",
+        "category": "support"
+      },
+      "rerank_score": 0.4569172620773315
+    },
+    {
+      "doc_id": "10_finance_expense",
+      "chunk_id": "10_finance_expense::chunk-0000",
+      "text": "# 경비 청구 및 재무 가이드 ## 청구 한도 - 식대 1인 3만원, 교통비 실비, 숙박 1박 15만원 (수도권) / 12만원 (지방). - 월 한도: 팀원 50만원, 매니저 100만원. ## 절차 1. 영수증 스캔 후 경비 시스템(expenses.acme.example)에 업로드. 2. 매니저 승인 → 재무 승인 (영업일 2일 이내). 3. 지급: 매월 15일/말일 정산. ## 금지 항목 - 주류, 개인 용품, 벌금/과태료는 청구 불가. ## 출장 - 국내 출장 사전 승인 필요, 해외 출장은 2주 전 임원 승인. - 출장 보고서 5일 내 제출. ## 문의 finance@acme.example, Slack #finance-help 키워드: 경비청구, 식대 3만원, 숙박 15만원, 월한도 50만원, 영수증, 재무승인.",
+      "score": 0.413227379322052,
+      "distance": 0.586772620677948,
+      "metadata": {
+        "difficulty": "medium",
+        "doc_id": "10_finance_expense",
+        "category": "finance",
+        "chunk_id": "10_finance_expense::chunk-0000"
+      },
+      "rerank_score": 0.413227379322052
+    },
+    {
+      "doc_id": "08_data_privacy",
+      "chunk_id": "08_data_privacy::chunk-0000",
+      "text": "# Data Privacy & GDPR Compliance ## Principles - Lawfulness, purpose limitation, data minimization, accuracy, storage limitation, integrity. ## User Rights - Access, rectification, erasure (\"right to be forgotten\"), portability, objection. - Requests handled within 30 days via privacy@acme.example. ## Retention - Account data: until deletion + 30 days backup purge. - Logs: 90 days, then anonymized. - Marketing consents: until withdrawn. ## DPA & Transfers - Standard Contractual Clauses (SCC) for non-adequate countries. - Data Processing Agreement available at acme.example/dpa. ## Breach Notification - Supervisory authority within 72 hours, affected users without undue delay. Keywords: GDPR, right to be forgotten, 30 days, retention 90 days, SCC, breach 72 hours.",
+      "score": 0.37387996912002563,
+      "distance": 0.6261200308799744,
+      "metadata": {
+        "doc_id": "08_data_privacy",
+        "difficulty": "easy",
+        "category": "privacy",
+        "chunk_id": "08_data_privacy::chunk-0000"
+      },
+      "rerank_score": 0.37387996912002563
+    },
+    {
+      "doc_id": "04_hr_vacation",
+      "chunk_id": "04_hr_vacation::chunk-0000",
+      "text": "# 휴가 및 연차 정책 (Acme Corp Korea) ## 연차 부여 - 입사 1년 미만: 1개월 개근 시 1일, 최대 11일. - 1년 이상: 15일 기본 + 근속 2년마다 1일 추가, 최대 25일. ## 휴가 종류 - 연차, 반차(오전/오후 4시간), 병가(유급 5일/年, 진단서 필요), 경조사(결혼 5일, 부모상 5일). ## 신청 절차 - HR 포털에서 최소 3영업일 전 신청, 팀장 승인 필요. - 긴급 병가는 사후 24시간 내 증빙 제출. ## 연차 소진 - 미사용 연차는 익년 3월까지 이월 가능, 이후 소멸. - 연차 촉진: 12월 1일까지 미사용 연차 사용 계획서 제출 요청. ## 문의 hr-kr@acme.example, Slack #hr-korea 키워드: 연차, 반차, 병가, 경조사, HR 포털, 연차촉진, 이월.",
+      "score": 0.20874106884002686,
+      "distance": 0.7912589311599731,
+      "metadata": {
+        "category": "hr",
+        "chunk_id": "04_hr_vacation::chunk-0000",
+        "difficulty": "medium",
+        "doc_id": "04_hr_vacation"
+      },
+      "rerank_score": 0.25874106884002684
+    },
+    {
+      "doc_id": "02_product_faq",
+      "chunk_id": "02_product_faq::chunk-0000",
+      "text": "# Nimbus Note — Product FAQ ## What is Nimbus Note? Nimbus Note is a cloud-based note-taking and task management app with real-time collaboration. ## Pricing - Free: up to 100 notes, 1GB storage. - Pro: $8/month, unlimited notes, 50GB, version history 1 year. - Team: $15/user/month, SSO, admin console, priority support. ## Sync & Offline - Syncs across Web, iOS, Android, Desktop (Windows/macOS). - Offline mode caches last 500 notes; changes sync when online. ## Export - Export to Markdown, PDF, or HTML. Bulk export up to 1000 notes at once. ## Collaboration - Share with view/comment/edit permissions. Comment threads resolve per paragraph. ## Security - Encryption at rest (AES-256) and in transit (TLS 1.3). 2FA via TOTP. ## Support - Help center: help.nimbus.example, email: support@nimbus.example. - Response SLA: Free 72h, Pro 24h, Team 4h. Keywords: Nimbus Note, pricing, sync, offline, export, collaboration, encryption, support SLA.",
+      "score": 0.20303571224212646,
+      "distance": 0.7969642877578735,
+      "metadata": {
+        "difficulty": "easy",
+        "category": "product",
+        "chunk_id": "02_product_faq::chunk-0000",
+        "doc_id": "02_product_faq"
+      },
+      "rerank_score": 0.20303571224212646
+    }
+  ],
+  "graded": "relevant",
+  "rewritten_query": null,
+  "generation": "환불 정책에 대해 안내드립니다. # 고객 지원 운영 가이드 ## 채널 - 이메일 support@acme.example, 채팅 위젯(웹/앱), 전화 1588-0000 (평일 09:00–18:00 KST). ## 티켓 분류 - 일반문의, 버그제보, 결제/환불, 계정/보안. - 우선순위: P1(서비스 장애), P2(기능 오류), P3(일반). ## SLA - P1: 1시간 내 첫 응답, 4시간 내 해결 목표. - P2: 4시간 응답, 24시간 해결. - P3: 24시간 응답. ## 환불 정책 - 결제 후 7일 이내 전액 환불, 이후 부분 환불(사용일수 차감). - 환불 요청은 결제수단 동일 수단으로 3–5영업일 처리. ## 에스컬레이션 - P1은 즉시 엔지니어링 온콜 호출, Slack #support-escalation. 키워드: 고객지원, S 추가 문의는 support@acme.example 또는 1588-0000으로 연락해 주세요.",
+  "citations": [
+    {
+      "doc_id": "07_customer_support",
+      "chunk_id": "07_customer_support::chunk-0000"
+    },
+    {
+      "doc_id": "10_finance_expense",
+      "chunk_id": "10_finance_expense::chunk-0000"
+    }
+  ],
+  "review_status": "approved",
+  "iterations": 0
+}

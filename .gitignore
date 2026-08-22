@@ -8,10 +8,16 @@ venv/
 !.env.example
 .pytest_cache/
 .ruff_cache/
-out/
+out/*
+!out/ops_rag.log
+!out/ragas_result.json
+!out/sheets_mock.csv
+!out/.gitkeep
 chroma_db/
 *.log
+!out/*.log
 .DS_Store
 Thumbs.db
 data/*.jsonl
 !data/.gitkeep
+data/chroma/

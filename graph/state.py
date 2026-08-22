@@ -1,14 +1,9 @@
-"""graph.state — LangGraph state 정의 (스텁).
+"""graph.state — LangGraph state 정의.
 
-Task 15 구현 예정. 현재는 docstring + 최소 플레이스홀더만 둔다.
-
-State 스키마 (예정):
-    - question: str — 사용자 질문
-    - documents: list[dict] — VectorDB 검색 결과 (chunk + metadata)
-    - grade: str | None — 문서 적합도 판정 (relevant / irrelevant)
-    - rewritten_question: str | None — grade 실패 시 재작성된 질문
-    - generation: str | None — 최종 답변 (citation 포함)
-    - human_review_required: bool — 답변 검증 실패 시 human review 큐 라우팅 여부
+LangGraph StateGraph에서 사용되는 상태 스키마.
+Task 15 명세 기준 8개 필드:
+    query, retrieved, graded, rewritten_query, generation, citations,
+    review_status, iterations
 """
 
 from __future__ import annotations
@@ -17,20 +12,24 @@ from typing import TypedDict
 
 
 class GraphState(TypedDict, total=False):
-    """LangGraph 상태.
+    """LangGraph RAG 상태.
 
     Attributes:
-        question: 원본 사용자 질문.
-        documents: 검색된 문서 청크 목록.
-        grade: 문서 적합도 (relevant/irrelevant).
-        rewritten_question: 재작성된 질문 (rewrite 노드 산출).
-        generation: 생성된 답변.
-        human_review_required: human review 큐 라우팅 여부.
+        query: 원본 사용자 질문.
+        retrieved: VectorDB 검색 결과 목록 (각 항목 doc_id/chunk_id/text/score 포함).
+        graded: 문서 적합도 판정 — "relevant" | "irrelevant" | None.
+        rewritten_query: grade 실패 시 재작성된 질문 (재시도용).
+        generation: 생성된 답변 (citation 포함).
+        citations: 답변에 포함된 인용 목록 [{doc_id, chunk_id}].
+        review_status: human review 상태 — "approved" | "needs_review" | "pending".
+        iterations: 재시도 횟수 (rewrite→retrieve 루프 카운터).
     """
 
-    question: str
-    documents: list[dict]
-    grade: str | None
-    rewritten_question: str | None
+    query: str
+    retrieved: list[dict]
+    graded: str | None
+    rewritten_query: str | None
     generation: str | None
-    human_review_required: bool
+    citations: list[dict]
+    review_status: str
+    iterations: int
