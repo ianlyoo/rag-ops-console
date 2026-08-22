@@ -1,0 +1,82 @@
+%% rag-ops-console 운영 아키텍처 — 문서 → VectorDB → LangGraph → 검증 → 피드백 → Sheets → 추천
+%% 실명 기술 스택: Chroma, LangGraph, RAGAS, gspread, sentence-transformers
+%% Mermaid flowchart — VS Code/ GitHub/ mermaid.live 렌더링 가능
+
+flowchart TB
+
+    %% ── 문서 수집 ──
+    A1["문서 소스<br/>llm-eval-pipeline/data/synthetic_qa.jsonl<br/>source_chunks (consume, 복사 금지)"]
+    A2["로컬 문서<br/>data/*.md · data/*.jsonl"]
+    A1 --> ING
+    A2 --> ING
+    ING["문서 Ingestion<br/>rag/vector_store.py :: ingest()<br/>청킹: doc_id / chunk_id / text<br/>Embedding: sentence-transformers<br/>paraphrase-multilingual-MiniLM-L12-v2<br/>fallback: hash-embedding (384d, L2)"]
+
+    %% ── VectorDB ──
+    ING --> VDB
+    VDB["VectorDB — Chroma PersistentClient<br/>path: data/chroma<br/>collection: rag_chunks<br/>hnsw:space=cosine<br/>rag/vector_store.py :: search()"]
+
+    VDB --> |"queryEmbedding + rerank<br/>(keyword overlap bonus +0.1)"| LG
+
+    %% ── LangGraph 5노드 ──
+    subgraph LG ["LangGraph StateGraph — graph/run.py :: build_graph()"]
+        direction TB
+        R1["① retrieve<br/>rag/vector_store.py search()<br/>top_k=5, n_fetch=15<br/>State: retrieved[]"]
+        R2{"② grade<br/>graph/nodes.py :: grade()<br/>score ≥ 0.25 & overlap ≥ 1 ?"}
+        R3["③ rewrite<br/>graph/nodes.py :: rewrite()<br/>규칙 기반 (환불→7일, 짧은 질의 보강)<br/>max 1회"]
+        R4["④ generate<br/>graph/nodes.py :: generate()<br/>extractive template<br/>citations: top-2 chunk_id"]
+        R5{"⑤ human_review<br/>graph/nodes.py :: human_review()<br/>FORBIDDEN_PHRASES / citation /<br/>token overlap ≥ 0.15"}
+        R1 --> R2
+        R2 -->|"relevant"| R4
+        R2 -->|"irrelevant, iter<1"| R3
+        R2 -->|"irrelevant, iter≥1"| R4
+        R3 --> R1
+        R4 --> R5
+    end
+
+    LG --> VER
+
+    %% ── 검증 ──
+    subgraph VER ["검증 · 평가 — eval/ + graph/nodes.py"]
+        direction TB
+        V1["citation 검증<br/>citations[0..1] 필수<br/>human_review: 빈 citation → needs_review"]
+        V2["policy 검증<br/>FORBIDDEN_PHRASES<br/>100% 환불 보장 / 무조건 환불 등"]
+        V3["hallucination 검증<br/>token overlap &lt; 0.15 → needs_review"]
+        V4["RAGAS 평가<br/>eval/ragas_eval.py :: compute_metrics()<br/>context_precision / context_recall / faithfulness<br/>ragas.metrics + deterministic fallback<br/>datasets.Dataset + ragas evaluate"]
+        V1 --> V4
+        V2 --> V4
+        V3 --> V4
+    end
+
+    VER -->|review_status: approved / needs_review| FB
+
+    %% ── 피드백 ──
+    FB["고객 피드백 모니터링<br/>monitor/feedback_classifier.py<br/>classify_feedback() 규칙 기반<br/>sentiment: positive / negative<br/>failure_category: 긍정 / 버그 / 개선 / 지식 부족<br/>root_cause: retrieval_miss / generation_error /<br/>citation_missing / policy_violation /<br/>unclear_question / outdated_doc<br/>review_status: auto_resolved / needs_human_review"]
+
+    FB --> SHEET
+
+    %% ── Sheets ──
+    SHEET["Sheets 적재<br/>monitor/feedback_to_sheet.py<br/>gspread authorize + open_by_key<br/>google.oauth2.service_account.Credentials<br/>fallback: out/sheets_mock.csv<br/>스키마: query / response / failure_category /<br/>root_cause / review_status / citations"]
+
+    SHEET --> REC
+
+    %% ── 추천 ──
+    REC["추천질문 큐레이션 — Top-5<br/>monitor/feedback_to_sheet.py<br/>curate_top_questions()<br/>부정 클러스터 빈도 + 키워드 클러스터링<br/>도메인 키워드: 환불/연차/API/VPN/장애 등 15개<br/>out/feedback_to_sheet.log"]
+
+    REC -.->|"선제안 콘텐츠 운영<br/>FAQ / 가이드 문서 보강"| ING
+    REC -.->|"문서 개선 → RAGAS 재평가"| VER
+    FB -.->|"needs_human_review(20건)<br/>LangGraph human_review 큐 통합"| R5
+
+    %% ── 스타일 ──
+    style ING fill:#1f6feb,stroke:#388bfd,color:#fff
+    style VDB fill:#1f6feb,stroke:#388bfd,color:#fff
+    style LG fill:#8957e5,stroke:#a475f9,color:#fff
+    style VER fill:#da3633,stroke:#f85149,color:#fff
+    style SHEET fill:#238636,stroke:#2ea043,color:#fff
+    style REC fill:#238636,stroke:#2ea043,color:#fff
+    style FB fill:#d29922,stroke:#e3b341,color:#000
+
+    %% ── 범례 ──
+    LEGEND["기술 스택<br/>VectorDB: chromadb PersistentClient<br/>Embedding: sentence-transformers<br/>Orchestration: langgraph StateGraph + langchain-core<br/>Evaluation: ragas + datasets<br/>Sheets: gspread + google-auth<br/>Dashboard: streamlit"]
+
+    classDef tech fill:#0d1117,stroke:#30363d,color:#c9d1d9
+    class LEGEND tech

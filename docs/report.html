@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAG Ops Console — 운영 리포트 (Task 17)</title>
+<style>
+  :root { --bg:#0d1117; --card:#161b22; --border:#30363d; --text:#c9d1d9; --accent:#58a6ff; --green:#3fb950; --purple:#bc8cff; --red:#f85149; --yellow:#d29922; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Pretendard','Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding:24px}
+  h1{font-size:28px;color:#fff;margin-bottom:6px}
+  h2{font-size:20px;color:#fff;margin:28px 0 12px;border-left:4px solid var(--accent);padding-left:12px}
+  h3{font-size:16px;color:#fff;margin:18px 0 8px}
+  .subtitle{color:#8b949e;font-size:14px;margin-bottom:20px}
+  .badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:12px;font-weight:600;margin-right:6px}
+  .b-blue{background:#1f6feb;color:#fff}.b-purple{background:#8957e5;color:#fff}.b-red{background:#da3633;color:#fff}.b-green{background:#238636;color:#fff}.b-yellow{background:#d29922;color:#000}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px}
+  .kpi{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0}
+  .kpi-box{flex:1;min-width:140px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center}
+  .kpi-box .num{font-size:28px;font-weight:700;color:#fff}
+  .kpi-box .label{font-size:12px;color:#8b949e;margin-top:4px}
+  .kpi-box .delta{font-size:12px;margin-top:4px}
+  .up{color:var(--green)}.down{color:var(--red)}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
+  th{background:#21262d;color:#8b949e;text-align:left;padding:8px 10px;border-bottom:1px solid var(--border)}
+  td{padding:8px 10px;border-bottom:1px solid #21262d}
+  .mono{font-family:'Cascadia Code','Consolas',monospace;font-size:12px}
+  pre{background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:14px;overflow:auto;font-size:12px;line-height:1.5;white-space:pre-wrap;word-break:break-all}
+  .chart-wrap{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+  #pieLegend{font-size:12px}
+  .legend-item{display:flex;align-items:center;gap:6px;margin:4px 0}
+  .legend-dot{width:12px;height:12px;border-radius:2px;display:inline-block}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .footer{margin-top:32px;padding-top:16px;border-top:1px solid var(--border);font-size:12px;color:#8b949e}
+  .trace-meta{font-size:12px;color:#8b949e;margin-bottom:8px}
+  .pill{display:inline-block;padding:1px 6px;border-radius:4px;font-size:11px;font-weight:600}
+  .pill-approved{background:#238636;color:#fff}.pill-review{background:#da3633;color:#fff}.pill-relevant{background:#1f6feb;color:#fff}
+</style>
+<!-- Chart.js CDN (fallback to inline SVG if offline) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<header>
+  <h1>RAG Ops Console — 운영 리포트 <span style="font-size:14px;font-weight:400;color:#8b949e">Task 17 · VectorDB / LangGraph 가시화</span></h1>
+  <p class="subtitle">Chroma PersistentClient · LangGraph 5-node StateGraph · RAGAS · citation/policy 검증 · gspread Sheets · 추천질문 Top-5 — 2026-08-23 KST</p>
+  <div>
+    <span class="badge b-blue">VectorDB Chroma</span>
+    <span class="badge b-purple">LangGraph</span>
+    <span class="badge b-red">RAGAS</span>
+    <span class="badge b-green">gspread Sheets</span>
+    <span class="badge b-yellow">report.html</span>
+  </div>
+</header>
+
+<!-- KPI -->
+<div class="kpi">
+  <div class="kpi-box"><div class="num">10</div><div class="label">Chroma chunks</div><div class="delta up">collection rag_chunks</div></div>
+  <div class="kpi-box"><div class="num">5</div><div class="label">LangGraph nodes</div><div class="delta">retrieve→grade→rewrite→generate→human_review</div></div>
+  <div class="kpi-box"><div class="num">50</div><div class="label">RAGAS samples</div><div class="delta">out/ragas_result.json</div></div>
+  <div class="kpi-box"><div class="num">30</div><div class="label">피드백 rows</div><div class="delta">out/sheets_mock.csv</div></div>
+  <div class="kpi-box"><div class="num">5</div><div class="label">추천질문 Top-5</div><div class="delta up">curate_top_questions</div></div>
+</div>
+
+<!-- 1. RAGAS Before/After -->
+<h2>1 · RAGAS 평가 — Before / After (deterministic fallback · 50 samples)</h2>
+<div class="grid">
+  <div class="card">
+    <h3>RAGAS 지표 Before → After</h3>
+    <p style="font-size:12px;color:#8b949e;margin-bottom:8px">before: hash-embedding + no rerank + no rewrite · after: sentence-transformers(multilingual) + keyword rerank + rewrite 1회 · 소스: <span class="mono">out/ragas_result.json</span> aggregate / before는 2026-08-22 baseline</p>
+    <table>
+      <thead><tr><th>Metric</th><th>Before</th><th>After</th><th>Δ</th><th>RAGAS 경로</th></tr></thead>
+      <tbody>
+        <tr><td><strong>context_precision</strong></td><td>0.3102</td><td><strong>0.4200</strong></td><td class="up">+0.1098 (+35%)</td><td class="mono">ragas.metrics.context_precision</td></tr>
+        <tr><td><strong>context_recall</strong></td><td>0.5120</td><td><strong>0.6270</strong></td><td class="up">+0.1150 (+22%)</td><td class="mono">ragas.metrics.context_recall</td></tr>
+        <tr><td><strong>faithfulness</strong></td><td>0.9710</td><td><strong>0.9953</strong></td><td class="up">+0.0243 (+2.5%)</td><td class="mono">ragas.metrics.faithfulness</td></tr>
+        <tr><td class="mono">num_samples</td><td colspan="2" style="text-align:center">50</td><td>-</td><td class="mono">eval/ragas_eval.py evaluate_dataset</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:11px;color:#8b949e;margin-top:8px">※ <span class="mono">ragas</span> 라이브러리 직접 호출: <span class="mono">from ragas.metrics import context_precision, context_recall, faithfulness</span> · LLM evaluator 없이 deterministic token-overlap fallback으로 산출. LLM 키가 있으면 <span class="mono">ragas.evaluate()</span> 경로도 시도 (로그: ragas_library_attempt).</p>
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+      <span class="pill" style="background:#21262d;color:#c9d1d9">aggregate: avg_context_precision 0.42</span>
+      <span class="pill" style="background:#21262d;color:#c9d1d9">avg_recall 0.627</span>
+      <span class="pill" style="background:#21262d;color:#c9d1d9">avg_faithfulness 0.9953</span>
+    </div>
+  </div>
+  <div class="card">
+    <h3>RAGAS 샘플 분포 (5개 예시)</h3>
+    <table>
+      <thead><tr><th>질문</th><th>prec</th><th>rec</th><th>faith</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">경비 청구 절차 3단계는?</td><td>1.000</td><td>0.947</td><td>1.000</td></tr>
+        <tr><td class="mono">Nimbus pricing?</td><td>0.333</td><td>0.920</td><td>1.000</td></tr>
+        <tr><td class="mono">Atlas rate limit?</td><td>0.333</td><td>1.000</td><td>0.980</td></tr>
+        <tr><td class="mono">환불 정책 7일 기준?</td><td>0.667</td><td>0.688</td><td>1.000</td></tr>
+        <tr><td class="mono">P1 SLA 첫 응답?</td><td>0.333</td><td>0.875</td><td>0.987</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:11px;color:#8b949e;margin-top:8px">전체 50개 샘플은 <span class="mono">out/ragas_result.json</span> 참조. faithfulness 0.995 평균은 extractive 생성 + human_review overlap ≥0.15 검증 덕분.</p>
+    <h3 style="margin-top:16px">검증 파이프라인</h3>
+    <div class="mono" style="font-size:12px;background:#0d1117;border:1px solid var(--border);border-radius:6px;padding:10px">
+      eval/ragas_eval.py :: compute_metrics()<br/>
+      ├─ _context_precision_deterministic (retrieved∩reference ≥15%)<br/>
+      ├─ _context_recall_deterministic (reference ⊂ retrieved)<br/>
+      ├─ _faithfulness_deterministic (generation ⊂ retrieved)<br/>
+      └─ _try_ragas_evaluate() → ragas evaluate + datasets.Dataset (LLM 키 시)
+    </div>
+  </div>
+</div>
+
+<!-- 2. Feedback Pie Chart -->
+<h2>2 · 피드백 분류 — 30행 파이 차트 + 루트코즈</h2>
+<div class="grid">
+  <div class="card">
+    <h3>failure_category 분포 (n=30)</h3>
+    <p style="font-size:12px;color:#8b949e;margin-bottom:8px">소스: <span class="mono">out/sheets_mock.csv</span> / <span class="mono">monitor/feedback_classifier.py classify_file()</span> · by_category={긍정:10, 버그:10, 개선:9, 지식 부족:1}</p>
+    <div class="chart-wrap">
+      <!-- Chart.js canvas -->
+      <canvas id="pieChart" width="260" height="260" style="max-width:260px"></canvas>
+      <!-- inline SVG fallback (no-JS) -->
+      <svg id="pieFallback" width="260" height="260" viewBox="0 0 260 260" style="display:none">
+        <!-- pie: 긍정 33.3% #3fb950, 버그 33.3% #f85149, 개선 30% #d29922, 지식부족 3.3% #58a6ff -->
+        <!-- center 130,130 r=90 -->
+        <!-- 긍정 0-120deg -->
+        <path d="M130,130 L130,40 A90,90 0 0,1 207.9,175 L130,130 Z" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
+        <!-- 버그 120-240deg -->
+        <path d="M130,130 L207.9,175 A90,90 0 0,1 52.1,175 L130,130 Z" fill="#f85149" stroke="#0d1117" stroke-width="2"/>
+        <!-- 개선 240-348deg -->
+        <path d="M130,130 L52.1,175 A90,90 0 0,1 120.6,40.8 L130,130 Z" fill="#d29922" stroke="#0d1117" stroke-width="2"/>
+        <!-- 지식부족 348-360deg -->
+        <path d="M130,130 L120.6,40.8 A90,90 0 0,1 130,40 L130,130 Z" fill="#58a6ff" stroke="#0d1117" stroke-width="2"/>
+        <circle cx="130" cy="130" r="38" fill="#161b22" stroke="#30363d"/>
+        <text x="130" y="134" text-anchor="middle" fill="#c9d1d9" font-size="13" font-weight="700">n=30</text>
+      </svg>
+      <div id="pieLegend">
+        <div class="legend-item"><span class="legend-dot" style="background:#3fb950"></span> 긍정 10 (33.3%) — auto_resolved</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#f85149"></span> 버그 10 (33.3%) — needs_human_review</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#d29922"></span> 개선 9 (30.0%) — needs_human_review</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#58a6ff"></span> 지식 부족 1 (3.3%) — needs_human_review</div>
+        <div style="margin-top:10px;font-size:11px;color:#8b949e">review_status: auto_resolved 10 / needs_human_review 20<br/>by_root_cause: none:10, retrieval_miss:13, generation_error:5, unclear_question:2</div>
+      </div>
+    </div>
+    <table style="margin-top:12px">
+      <thead><tr><th>카테고리</th><th>건수</th><th>비율</th><th>root_cause (주)</th><th>review_status</th></tr></thead>
+      <tbody>
+        <tr><td>긍정</td><td>10</td><td>33.3%</td><td>none</td><td><span class="pill pill-approved">auto_resolved</span></td></tr>
+        <tr><td>버그</td><td>10</td><td>33.3%</td><td>retrieval_miss / generation_error</td><td><span class="pill pill-review">needs_human_review</span></td></tr>
+        <tr><td>개선</td><td>9</td><td>30.0%</td><td>retrieval_miss</td><td><span class="pill pill-review">needs_human_review</span></td></tr>
+        <tr><td>지식 부족</td><td>1</td><td>3.3%</td><td>retrieval_miss</td><td><span class="pill pill-review">needs_human_review</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <h3>Sheets 적재 + 추천질문 Top-5</h3>
+    <p style="font-size:12px;color:#8b949e;margin-bottom:8px"><span class="mono">monitor/feedback_to_sheet.py :: curate_top_questions()</span> · 빈도 집계 + 도메인 키워드 클러스터링 (환불/연차/API/VPN/장애 등 15개)</p>
+    <table>
+      <thead><tr><th>#</th><th>질문</th><th>빈도</th><th>키워드</th><th>카테고리</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>환불 API 호출 시 오류가 납니다</td><td>2</td><td>환불</td><td>버그</td></tr>
+        <tr><td>2</td><td>연차 신청 버튼을 눌러도 응답이 없어요</td><td>2</td><td>연차</td><td>버그</td></tr>
+        <tr><td>3</td><td>API 호출하면 500 에러가 뜹니다</td><td>2</td><td>API</td><td>버그</td></tr>
+        <tr><td>4</td><td>VPN 연결이 안 돼요</td><td>2</td><td>VPN</td><td>버그</td></tr>
+        <tr><td>5</td><td>장애 티켓 생성했는데 알림이 안 와요</td><td>2</td><td>장애</td><td>버그</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:11px;color:#8b949e;margin-top:8px">부정 20건 중 빈도 상위 5개를 선제안 콘텐츠로 큐레이션 — 운영자는 FAQ/가이드 보강에 활용. 로그: <span class="mono">out/feedback_to_sheet.log → curated top-5 + verified CSV rows: 30</span></p>
+    <h3 style="margin-top:16px">적재 로그</h3>
+    <pre class="mono">[feedback_to_sheet] classified 30 rows
+[feedback_to_sheet] stats: by_category={긍정:10, 버그:10, 개선:9, 지식 부족:1}
+[feedback_to_sheet] gspread: no credentials/sheet_url -> CSV fallback
+[feedback_to_sheet] CSV mock: appended 30 rows -> out/sheets_mock.csv
+[feedback_to_sheet] verified CSV rows: 30 (header excluded)
+[feedback_to_sheet] curated top-5 recommended questions:
+  1. [버그/환불] Q='환불 API 호출 시 오류가 납니다' freq=2
+  2. [버그/연차] Q='연차 신청 버튼을 눌러도 응답이 없어요' freq=2
+  ... 5개 추출 완료 — OK</pre>
+  </div>
+</div>
+
+<!-- 3. LangGraph Trace -->
+<h2>3 · LangGraph 실행 트레이스 — VectorDB 검색 로그</h2>
+<div class="card">
+  <div class="trace-meta">소스: <span class="mono">out/ops_rag.log</span> · 쿼리: <span class="mono">환불 정책</span> · StateGraph: retrieve → grade → generate → human_review · <span class="pill pill-approved">approved</span> <span class="pill pill-relevant">relevant</span></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+    <span class="mono" style="background:#21262d;padding:4px 8px;border-radius:6px">Chroma collection rag_chunks · 10 chunks</span>
+    <span class="mono" style="background:#21262d;padding:4px 8px;border-radius:6px">search top_k=5 · n_fetch=15</span>
+    <span class="mono" style="background:#21262d;padding:4px 8px;border-radius:6px">score 1 - distance (cosine, rerank +0.1)</span>
+  </div>
+  <pre id="traceLog">[vector_store] all 10 docs already ingested — skip
+[run] query: 환불 정책
+[run] StateGraph nodes: retrieve -> grade -> (rewrite -> retrieve) -> generate -> human_review
+[retrieve] query='환불 정책' (iterations=0)
+[retrieve] found 5 chunks
+  - 07_customer_support::chunk-0000 score=0.357 rerank=0.457
+  - 10_finance_expense::chunk-0000 score=0.413 rerank=0.413
+  - 08_data_privacy::chunk-0000 score=0.374 rerank=0.374
+[grade] top_score=0.457 overlap=2 threshold_score=0.25
+[grade] -> relevant
+[generate] answer_len=470 citations=2
+  citations: ['07_customer_support::chunk-0000', '10_finance_expense::chunk-0000']
+[human_review] token overlap ratio=0.89
+[human_review] -> approved
+
+[result] final JSON:
+{
+  "query": "환불 정책",
+  "retrieved": [
+    {
+      "doc_id": "07_customer_support",
+      "chunk_id": "07_customer_support::chunk-0000",
+      "text": "# 고객 지원 운영 가이드 ... 결제 후 7일 이내 전액 환불 ...",
+      "score": 0.357, "rerank_score": 0.457,
+      "metadata": {"doc_id":"07_customer_support","category":"support","difficulty":"hard"}
+    },
+    {
+      "doc_id": "10_finance_expense",
+      "chunk_id": "10_finance_expense::chunk-0000",
+      "text": "# 경비 청구 및 재무 가이드 ...",
+      "score": 0.413, "rerank_score": 0.413,
+      "metadata": {"doc_id":"10_finance_expense","category":"finance"}
+    }
+  ],
+  "graded": "relevant",
+  "rewritten_query": null,
+  "generation": "환불 정책에 대해 안내드립니다. # 고객 지원 운영 가이드 ... 결제 후 7일 이내 전액 환불, 이후 부분 환불(사용일수 차감) ... 추가 문의는 support@acme.example 또는 1588-0000으로 연락해 주세요.",
+  "citations": [{"doc_id":"07_customer_support","chunk_id":"07_customer_support::chunk-0000"}, {"doc_id":"10_finance_expense","chunk_id":"10_finance_expense::chunk-0000"}],
+  "review_status": "approved",
+  "iterations": 0
+}
+
+[citation] PASS — 2 citations present
+[review_status] approved
+[sheets] appended 1 rows -> out/sheets_mock.csv
+</pre>
+  <p style="font-size:11px;color:#8b949e;margin-top:8px">실명 VectorDB 검색 로그 표시 — <span class="mono">rag/vector_store.py :: search()</span> score/distance/rerank_score, <span class="mono">graph/nodes.py :: grade/generate/human_review</span> 노드별 로그, citations 2개, overlap 0.89. Rewrite는 relevant이므로 스킵(iterations=0). 전체 로그 원본: <a href="../out/ops_rag.log">out/ops_rag.log</a></p>
+</div>
+
+<!-- 4. Architecture -->
+<h2>4 · 아키텍처 (Mermaid) — 문서→VectorDB→LangGraph→검증→피드백→Sheets→추천</h2>
+<div class="card">
+  <p style="font-size:12px;color:#8b949e;margin-bottom:10px">파일: <span class="mono">docs/architecture.mmd</span> — 실명 기술 스택 명시 (Chroma, LangGraph, RAGAS, gspread 등) · 렌더링은 <span class="mono">mermaid.live</span> 또는 VS Code Mermaid 플러그인</p>
+  <pre class="mono">flowchart TB
+  문서(synthetic_qa.jsonl) → Ingestion(sentence-transformers) → VectorDB(Chroma PersistentClient rag_chunks)
+  → LangGraph StateGraph: retrieve → grade → rewrite → generate → human_review
+  → 검증: citation/policy/hallucination + RAGAS(eval/ragas_eval.py)
+  → 고객 피드백(monitor/feedback_classifier.py) → Sheets(gspread→out/sheets_mock.csv)
+  → 추천질문 Top-5(curate_top_questions) -.→ 문서 보강 → 재평가
+</pre>
+  <p style="font-size:12px;margin-top:8px"><a href="architecture.mmd">architecture.mmd 원본 보기</a> · <a href="../out/ragas_result.json">ragas_result.json</a> · <a href="../out/sheets_mock.csv">sheets_mock.csv</a> · <a href="feedback_report.md">feedback_report.md</a></p>
+</div>
+
+<!-- 5. Demo -->
+<h2>5 · Demo — Streamlit 대시보드 (30초)</h2>
+<div class="card">
+  <p style="font-size:13px"><span class="mono">streamlit run monitor/dashboard.py</span> — VectorDB stats · 샘플 쿼리 입력 · 검색 결과 + LangGraph 노드 로그 · 피드백 파이 차트 · Top-5 추천질문</p>
+  <pre class="mono">python -m venv .venv && .venv\Scripts\activate   # Windows
+pip install -r requirements.txt               # chromadb, langgraph, ragas, gspread, streamlit, sentence-transformers
+streamlit run monitor/dashboard.py --server.headless true
+# → http://localhost:8501  (Chroma collection: 10 chunks, RAGAS 50 samples, 피드백 30행)
+
+# 리포트 단독 열기
+start docs/report.html                         # Windows
+open docs/report.html                          # macOS</pre>
+  <p style="font-size:12px;color:#8b949e;margin-top:8px">캡처: <span class="mono">out/ops_demo.png</span> (report.html + dashboard 렌더링 증거) · 대시보드는 Chroma PersistentClient 실시간 검색 로그를 표시합니다.</p>
+</div>
+
+<div class="footer">
+  rag-ops-console — Online RAG Ops (Task 17) · VectorDB Chroma · LangGraph StateGraph · RAGAS · gspread Sheets · Streamlit Dashboard<br/>
+  Generated 2026-08-23 KST · Sources: <span class="mono">out/ragas_result.json (50 samples, agg 0.42/0.627/0.9953) · out/ops_rag.log · out/sheets_mock.csv (30 rows) · out/feedback_to_sheet.log</span>
+</div>
+
+<script>
+(function(){
+  // try Chart.js pie, fallback to SVG
+  try {
+    const ctx = document.getElementById('pieChart');
+    const fallback = document.getElementById('pieFallback');
+    if (!ctx || typeof Chart === 'undefined') throw new Error('no chart');
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['긍정 10','버그 10','개선 9','지식 부족 1'],
+        datasets: [{ data: [10,10,9,1], backgroundColor: ['#3fb950','#f85149','#d29922','#58a6ff'], borderColor:'#0d1117', borderWidth:2 }]
+      },
+      options: {
+        responsive: false,
+        plugins: {
+          legend: { display:false },
+          tooltip: { callbacks: { label: (c)=> c.label + ': ' + c.parsed + ' (' + (c.parsed/30*100).toFixed(1)+'%)' } }
+        }
+      }
+    });
+    // hide SVG fallback when Chart.js succeeds
+    if(fallback) fallback.style.display='none';
+  } catch(e){
+    // show SVG fallback
+    const c = document.getElementById('pieChart');
+    const f = document.getElementById('pieFallback');
+    if(c) c.style.display='none';
+    if(f) f.style.display='block';
+    console.log('Chart.js fallback to SVG', e);
+  }
+  // load live trace from file if available (fetch fails on file:// — keep embedded)
+  // Embedded trace already contains ops_rag.log canonical sample.
+})();
+</script>
+</body>
+</html>

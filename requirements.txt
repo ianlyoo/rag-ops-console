@@ -19,6 +19,9 @@ google-auth>=2.35.0
 # Embeddings (lightweight default; Chroma can use sentence-transformers)
 sentence-transformers>=3.0.0
 
+# Dashboard (Task 17 — Streamlit 30초 데모, 실명 VectorDB 검색 로그 표시)
+streamlit>=1.30.0
+
 # Dev / CI
 pytest>=8.3.5
 ruff>=0.11.0

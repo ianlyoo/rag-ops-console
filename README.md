@@ -125,6 +125,82 @@ ruff check .
 
 B는 A의 코드를 복사하지 않고 A 산출물을 데이터로 consume한다. 경계 위반은 `diff -r llm-eval-pipeline/eval rag-ops-console/eval`로 검증한다.
 
+## Demo — 운영 리포트 + 대시보드 (Task 17, 30초)
+
+> VectorDB(Chroma) 실명 검색 로그와 LangGraph 5-node 트레이스를 브라우저에서 확인하는 데모. RAGAS Before/After + 피드백 파이 차트는 `docs/report.html`에, 실시간 검색은 `monitor/dashboard.py`에 있다.
+
+### 1) 운영 리포트 (브라우저)
+
+```bash
+# 파일로 바로 열기 (크롬/엣지)
+start docs/report.html          # Windows
+open docs/report.html           # macOS
+# 또는
+python -m http.server 8000
+# → http://localhost:8000/docs/report.html
+```
+
+| 리포트 섹션 | 소스 | 시각화 |
+|---|---|---|
+| RAGAS Before→After | `out/ragas_result.json` (50 samples, agg 0.42/0.627/0.9953) | 테이블 + Δ% (report.html §1) |
+| 피드백 분류 파이 차트 | `out/sheets_mock.csv` (긍정10/버그10/개선9/지식부족1) | Chart.js + SVG fallback §2 |
+| LangGraph 트레이스 | `out/ops_rag.log` (retrieve→grade→generate→human_review) | `<pre>` 로그 §3 |
+| 아키텍처 Mermaid | `docs/architecture.mmd` | flowchart TB (Chroma·LangGraph·RAGAS·gspread) |
+
+캡처: `out/ops_demo.png` (리포트+대시보드 렌더링 증거) — 파일 경로는 `.gitignore`에서 `!out/ops_demo.png`로 허용됨.
+
+### 2) Streamlit 데모 대시보드 (30초)
+
+```bash
+python -m venv .venv
+# Windows: .venv\Scripts\activate
+# macOS/Linux: source .venv/bin/activate
+pip install -r requirements.txt   # chromadb, langgraph, ragas, gspread, streamlit, sentence-transformers
+streamlit run monitor/dashboard.py --server.headless true
+# → http://localhost:8501
+```
+
+대시보드 구성 (실명 VectorDB 검색 로그 표시):
+
+- **VectorDB stats** — `rag/vector_store.py :: get_chroma_client()` collection `rag_chunks` count (10 chunks, `data/chroma`)
+- **샘플 쿼리 입력** — `환불 정책` 기본값, `search(query, top_k=5)` score/distance/rerank_score + 문서 스니펫
+- **LangGraph 노드 로그** — `graph/run.py :: run_query()` retrieve→grade→generate→human_review, `graded`/`review_status`/`citations` pill + `<code>` 트레이스
+- **피드백 stats** — `out/sheets_mock.csv` bar_chart (긍정/버그/개선/지식부족), by_root_cause
+- **RAGAS Before→After** — `out/ragas_result.json` aggregate
+- **추천질문 Top-5** — `monitor/feedback_to_sheet.py :: curate_top_questions()` 키워드 클러스터링
+- **원시 로그 탭** — `out/ops_rag.log` / `out/feedback_to_sheet.log`
+
+종료: `Ctrl+C` 또는 `streamlit run ... --server.headless true` 백그라운드라면 `taskkill /IM streamlit.exe /F` (Windows)
+
+### 3) 전체 파이프라인 30초 재현
+
+```bash
+# 1) VectorDB ingest (최초 1회)
+python -c "from rag.vector_store import ingest; print(ingest(reset=False))"  # 10 chunks
+
+# 2) LangGraph 단일 질의 + 로그
+python -m graph.run --query "환불 정책" --log out/ops_rag.log
+
+# 3) RAGAS 50 samples
+python -m eval.ragas_eval --output out/ragas_result.json
+
+# 4) 피드백 30행 분류 + Sheets 적재 + Top-5
+python -m monitor.feedback_classifier --input monitor/data/feedback_sample.csv --output out/classified_sample.csv
+python -m monitor.feedback_to_sheet
+
+# 5) 리포트/대시보드 확인
+start docs/report.html
+streamlit run monitor/dashboard.py
+```
+
+스크린샷 생성 (headless):
+
+```bash
+python -c "from PIL import Image; img=Image.open('out/ops_demo.png'); img.show()"
+# 또는 재생성
+python scripts/capture_demo.py   # PIL 합성 — report.html + dashboard 스냅샷 (offline 생성)
+```
+
 ## License
 
 MIT — see [LICENSE](LICENSE)

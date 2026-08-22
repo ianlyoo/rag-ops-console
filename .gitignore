@@ -12,6 +12,7 @@ out/*
 !out/ops_rag.log
 !out/ragas_result.json
 !out/sheets_mock.csv
+!out/ops_demo.png
 !out/.gitkeep
 chroma_db/
 *.log
