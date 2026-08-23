@@ -23,6 +23,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import sys
 from pathlib import Path
@@ -112,10 +113,8 @@ def _require_artifact(path: Path | None, label: str) -> Path:
 
 def main() -> None:
     if hasattr(sys.stdout, "reconfigure"):
-        try:
+        with contextlib.suppress(Exception):
             sys.stdout.reconfigure(encoding="utf-8")
-        except Exception:
-            pass
 
     parser = argparse.ArgumentParser(
         description="Compare measured baseline vs improved evaluation artifacts"

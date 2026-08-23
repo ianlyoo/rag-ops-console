@@ -1,6 +1,6 @@
 # rag-ops-console — 평가 리포트 (Online)
 
-> Online 운영 콘솔 — Chroma VectorDB + LangGraph 5-node + RAGAS + Sheets 30행. A(llm-eval-pipeline) synthetic 50을 입력으로 consume, 내부 로직은 B 고유.
+> Online 운영 콘솔 — Chroma VectorDB + LangGraph 5-node + Deterministic RAG evaluation + optional LLM-backed RAGAS + Sheets 30행. A(llm-eval-pipeline) synthetic 50을 입력으로 consume, 내부 로직은 B 고유. 평가: Deterministic RAG metrics — no API key, token overlap, CI/regression / Optional LLM-backed RAGAS mode — ragas.evaluate(), credentials needed.
 
 ## 1. 요약 (out/ 로그 인용)
 
@@ -9,17 +9,18 @@
 | VectorDB | Chroma PersistentClient, ingested 10 chunks (dedup) | `out/ops_rag.log` ingested=10, `rag/vector_store.py` |
 | 검색 | score = 1-distance (cosine), keyword rerank +0.1 | `out/ops_rag.log` top_score 0.35~0.45 |
 | Retrieval Hit (RAGAS recall proxy) | avg_context_recall 0.627 (min 0.0 max 1.0) | `out/ragas_result.json` aggregate |
-| RAGAS context_precision | 0.42 (measured before 0.3666, hist 0.31, +0.053) | `out/improved_metrics.json` aggregate (measured `out/baseline_metrics.json` 0.3666, hist `out/baseline_historical_reference.json` 0.31) |
-| RAGAS context_recall | 0.627 (measured before 0.6133, hist 0.512, +0.014) | 동일 |
-| RAGAS faithfulness | 0.9953 (measured before 0.9934, hist 0.971, +0.002) | 동일, 50 samples deterministic fallback |
+| Deterministic RAG metrics — context_precision | 0.42 (measured before 0.3666, hist 0.31, +0.053) | `out/improved_metrics.json` aggregate (measured `out/baseline_metrics.json` 0.3666, hist `out/baseline_historical_reference.json` 0.31) — Deterministic RAG metrics, not LLM-backed RAGAS |
+| Deterministic RAG metrics — context_recall | 0.627 (measured before 0.6133, hist 0.512, +0.014) | 동일 — Deterministic |
+| Deterministic RAG metrics — faithfulness | 0.9953 (measured before 0.9934, hist 0.971, +0.002) | 동일, 50 samples Deterministic RAG metrics — token overlap fallback (optional LLM-backed RAGAS 비교는 키 있을 때 별도 기록) |
 | LangGraph | retrieve->grade->rewrite(최대1)->generate->human_review, iterations 0/1 | `out/ops_rag.log` + `graph/run.py` |
 | Sheets | 30 rows appended, by_cat {긍정10 버그10 개선9 지식부족1} | `out/sheets_mock.csv` + `out/feedback_to_sheet.log` |
 | 추천 질문 | Top-5 (환불/연차/API/VPN/장애 각 freq 2) | `out/feedback_to_sheet.log` curated top-5 |
 | Tests | 26 passed (vector 5, langgraph 8, feedback 10, scaffold 3) | `pytest -q` |
 
-## 2. RAGAS 상세 (eval/ragas_eval.py)
+## 2. RAGAS 상세 — Deterministic RAG metrics vs Optional LLM-backed RAGAS (eval/ragas_eval.py)
 
-- **정의**: `context_precision = relevant_retrieved / retrieved` (reference 토큰 15% overlap 기준), `context_recall = ref_tok in retrieved / ref_tok`, `faithfulness = generation_tok in retrieved / generation_tok` — LLM 없이 deterministic fallback. ragas 라이브러리 호출 경로는 `ragas.metrics.{context_precision,context_recall,faithfulness}` + `ragas.evaluate`로 명시, API 키 없으면 fallback.
+- **Deterministic RAG metrics — no API key, token overlap, CI/regression**: `context_precision = relevant_retrieved / retrieved` (reference 토큰 15% overlap 기준), `context_recall = ref_tok in retrieved / ref_tok`, `faithfulness = generation_tok in retrieved / generation_tok` — LLM 없이 token overlap으로 산출. Committed 0.42/0.627/0.9953은 이 모드이며 `answer relevancy`는 미구현(코드 검색 0건)으로 표기에서 제외.
+- **Optional LLM-backed RAGAS mode — ragas.evaluate(), credentials needed**: ragas 라이브러리 호출 경로는 `ragas.metrics.{context_precision,context_recall,faithfulness}` + `ragas.evaluate` + `datasets.Dataset`로 명시(`eval/ragas_eval.py:29-48`, `_try_ragas_evaluate`), API 키 없으면 deterministic fallback으로 동작. LLM-backed 수치는 committed가 아니며 `ragas_library_attempt`로 별도 기록.
 - **수치**: 50 samples, avg_precision 0.42, avg_recall 0.627, avg_faith 0.9953 — precision이 낮아도 recall/faith 높음은 rerank+rewrite로 근거 문서가 생성에 충분히 포함됨을 의미. measured before( hash `RAG_EMBEDDING_MODEL=hash` + `RAG_DISABLE_RERANK=1` 0.3666) 대비 after( sentence-transformers + rerank+rewrite1 0.42) 개선 +0.053/+0.014/+0.002 (hist 0.31->0.42 +0.11은 `out/baseline_historical_reference.json` env not reproduced, see `out/repro_investigation.md`).
 - **재현**:
 

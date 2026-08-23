@@ -1,7 +1,7 @@
 # Reproducibility Guide — rag-ops-console (Online RAG)
 
-> RAGAS Before/After: `context_precision 0.31→0.42`, `context_recall 0.512→0.627`, `faithfulness 0.971→0.9953` (50 samples, `eval/ragas_eval.py` deterministic fallback, plus optional `ragas` library path).
-> Sources: `out/ragas_result.json`, `out/ops_rag.log`, `data/synthetic_qa.jsonl`, `eval/ragas_eval.py`, `rag/vector_store.py`, `graph/run.py`
+> RAGAS Before/After (measured): `context_precision 0.3666→0.42`, `context_recall 0.6133→0.627`, `faithfulness 0.9934→0.9953` (50 samples, `eval/ragas_eval.py` deterministic fallback, plus optional `ragas` library path). Historical recorded baseline `0.3102/0.512/0.971` (2026-08-22, hash, no rerank) not reproduced on current synthetic (10 chunks) — see `out/baseline_historical_reference.json` and `out/repro_investigation.md`.
+> Sources: `out/baseline_metrics.json` (measured hash, `RAG_EMBEDDING_MODEL=hash RAG_DISABLE_RERANK=1`), `out/improved_metrics.json` (multilingual+rerank), `out/ragas_result.json`, `out/ops_rag.log`, `data/synthetic_qa.jsonl`, `eval/ragas_eval.py`, `rag/vector_store.py`, `graph/run.py`
 
 ## 1. File Structure (Before/After)
 
@@ -14,8 +14,9 @@ out/
 
 Canonical pattern:
 
-- **Before** (`baseline_metrics.json` or first `out/ragas_result.json` aggregate): `avg_context_precision 0.31, avg_context_recall 0.512, avg_faithfulness 0.971` (hash-embedding baseline, 2026-08-22).
-- **After** (`improved_metrics.json` or current `out/ragas_result.json`): `avg_context_precision 0.42, avg_context_recall 0.627, avg_faithfulness 0.9953` (`out/ragas_result.json:454-459`, sentence-transformers multilingual + keyword rerank +0.1 + rewrite 1회).
+- **Before (measured, current repro)** (`out/baseline_metrics.json`): `avg_context_precision 0.3666, avg_context_recall 0.6133, avg_faithfulness 0.9934` — hash embedding (`RAG_EMBEDDING_MODEL=hash`) + rerank disabled (`RAG_DISABLE_RERANK=1`), 50 samples, see `out/repro_investigation.md` §2.
+- **Historical recorded baseline** (`out/baseline_historical_reference.json`): `avg_context_precision 0.31, avg_context_recall 0.512, avg_faithfulness 0.971` (hash-embedding baseline, 2026-08-22, historical record — exact env not reproduced on current synthetic 10 chunks, preserved with `historical_recorded_baseline` flag).
+- **After** (`out/improved_metrics.json` or current `out/ragas_result.json`): `avg_context_precision 0.42, avg_context_recall 0.627, avg_faithfulness 0.9953` (`out/ragas_result.json:454-459`, sentence-transformers multilingual + keyword rerank +0.1 + rewrite 1회).
 
 In this repo `out/ragas_result.json` itself is the After snapshot (50 samples). To create a Before snapshot before rerunning:
 
@@ -83,14 +84,14 @@ See `docs/evaluation_failure_analysis.md` (§1, Appendix A) for `rg "Automatic r
 
 ## 3. Before/After Metrics (exact values)
 
-| Metric | Before (baseline) | After (improved) | Δ | Source |
-|--------|-------------------|------------------|---|--------|
-| `context_precision` | 0.3102 | **0.4200** | +0.1098 (+35%) | `out/ragas_result.json` aggregate / `docs/report.html` §1 |
-| `context_recall` | 0.5120 | **0.6270** | +0.1150 (+22%) | same |
-| `faithfulness` | 0.9710 | **0.9953** | +0.0243 (+2.5%) | same |
-| `num_samples` | 50 | 50 | — | `eval/ragas_eval.py` |
+| Metric | Before (measured) | Historical recorded | After (improved) | Δ (measured) | Source |
+|--------|-------------------|---------------------|------------------|--------------|--------|
+| `context_precision` | 0.3666 | 0.3102 | **0.4200** | +0.0534 (+14.6%) | `out/baseline_metrics.json` vs `out/improved_metrics.json` / `out/baseline_historical_reference.json` |
+| `context_recall` | 0.6133 | 0.5120 | **0.6270** | +0.0137 (+2.2%) | same |
+| `faithfulness` | 0.9934 | 0.9710 | **0.9953** | +0.0019 (+0.2%) | same |
+| `num_samples` | 50 | 50 | 50 | — | `eval/ragas_eval.py` |
 
-Before is hash-embedding + no rerank + no rewrite; After is `sentence-transformers(multilingual)` + keyword rerank (+0.1) + rewrite 1회 (`docs/report.html` §1, `docs/eval.md` §2).
+Before (measured) is hash-embedding (`RAG_EMBEDDING_MODEL=hash`) + no rerank (`RAG_DISABLE_RERANK=1`) + no rewrite; Historical recorded is 2026-08-22 `0.3102/0.512/0.971` (env not reproduced, see `out/repro_investigation.md` §2 and `out/baseline_historical_reference.json`); After is `sentence-transformers(multilingual)` + keyword rerank (+0.1) + rewrite 1회 (`docs/report.html` §1, `docs/eval.md` §2). `scripts/compare_rag.py` now compares measured `out/baseline_metrics.json` vs `out/improved_metrics.json`.
 
 Target next: `context_recall >= 0.75` with rewrite query expansion (see `evaluation_failure_analysis.md` §3.2) while faithfulness stays >=0.99.
 
@@ -116,4 +117,4 @@ Offline counterpart is `llm-eval-pipeline/docs/reproducibility.md` — `python -
 
 ---
 
-*Reproduce: `python -m eval.ragas_eval --output out/ragas_result.json` then `python scripts/compare_rag.py` — regenerates `out/ragas_result.json` and `out/comparison.md` (baseline_metrics vs improved_metrics). Faithfulness-but-wrong case is `out/ragas_result.json:13-20`.*
+*Reproduce: `RAG_EMBEDDING_MODEL=hash RAG_DISABLE_RERANK=1 python scripts/repro_hash_baseline.py` (or manual worktree, see `out/repro_investigation.md`) -> `out/baseline_metrics.json` (0.3666), then `python -m eval.ragas_eval --output out/improved_metrics.json` (0.42) -> `python scripts/compare_rag.py --baseline out/baseline_metrics.json --improved out/improved_metrics.json` — regenerates `out/comparison.md` (measured baseline vs improved). `out/ragas_result.json` is the improved snapshot. Historical 0.3102 preserved in `out/baseline_historical_reference.json`. Faithfulness-but-wrong case is `out/ragas_result.json:13-20`.*
