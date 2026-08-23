@@ -12,9 +12,9 @@ API:
     search(query, top_k, persist_dir, collection_name) -> list[dict]
 
 데이터 소스:
-    - A 레포 `data/synthetic_qa.jsonl`의 source_chunks를 절대경로로 로드
-      (복사 금지 — 경로 참조/로드만). 환경변수 EVAL_PIPELINE_HOME 또는
-      하드코딩 폴백 경로 `C:/Users/torch/Documents/code/llm-eval-pipeline/...`
+    - A 레포 `data/synthetic_qa.jsonl`의 source_chunks 로드
+      (복사 금지 — 경로 참조/로드만). 폴백: 환경변수 EVAL_PIPELINE_HOME >
+      CLI --input > bundled fixture > 상대경로 ../llm-eval-pipeline/
     - B 자체 `data/` 샘플 + synthetic_chunks 모두 Chroma에 적재
 """
 
@@ -34,9 +34,28 @@ import chromadb
 # ---------------------------------------------------------------------------
 DEFAULT_PERSIST_DIR = str(Path(__file__).resolve().parents[1] / "data" / "chroma")
 DEFAULT_COLLECTION = "rag_chunks"
-SYNTHETIC_QA_FALLBACK = Path(
-    r"C:\Users\torch\Documents\code\llm-eval-pipeline\data\synthetic_qa.jsonl"
-)
+
+
+def _resolve_synthetic_qa_path() -> Path | None:
+    # 1. Env var
+    env = os.environ.get("EVAL_PIPELINE_HOME", "").strip()
+    if env:
+        p = Path(env) / "data" / "synthetic_qa.jsonl"
+        if p.exists():
+            return p
+    # 2. CLI --input handled in caller (no fallback here)
+    # 3. Bundled fixture (if any)
+    bundled = Path(__file__).resolve().parents[1] / "data" / "synthetic_qa.jsonl"
+    if bundled.exists():
+        return bundled
+    # 4. Relative sibling repo (dev convenience, not committed as absolute)
+    sibling = Path(__file__).resolve().parents[2] / "llm-eval-pipeline" / "data" / "synthetic_qa.jsonl"
+    if sibling.exists():
+        return sibling
+    return None
+
+
+SYNTHETIC_QA_FALLBACK = None  # resolved lazily via _resolve_synthetic_qa_path()
 
 # ---------------------------------------------------------------------------
 # Embedding — sentence-transformers with hash fallback
@@ -145,21 +164,6 @@ def _get_or_create_collection(
 # ---------------------------------------------------------------------------
 # Synthetic QA 로드 (A 레포 — 복사 금지, 경로 참조만)
 # ---------------------------------------------------------------------------
-
-def _resolve_synthetic_qa_path() -> Path | None:
-    """EVAL_PIPELINE_HOME 환경변수 > 폴백 절대경로."""
-    env_home = os.environ.get("EVAL_PIPELINE_HOME", "").strip()
-    if env_home:
-        p = Path(env_home) / "data" / "synthetic_qa.jsonl"
-        if p.is_file():
-            return p
-    if SYNTHETIC_QA_FALLBACK.is_file():
-        return SYNTHETIC_QA_FALLBACK
-    # 상대경로 폴백: ../../llm-eval-pipeline/data/synthetic_qa.jsonl
-    rel = Path(__file__).resolve().parents[1].parent / "llm-eval-pipeline" / "data" / "synthetic_qa.jsonl"
-    if rel.is_file():
-        return rel
-    return None
 
 
 def load_synthetic_chunks() -> list[dict[str, Any]]:
