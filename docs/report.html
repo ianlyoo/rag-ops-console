@@ -46,7 +46,7 @@
 
 <header>
   <h1>RAG Ops Console — 운영 리포트 <span style="font-size:14px;font-weight:400;color:#8b949e">VectorDB / LangGraph 가시화</span></h1>
-  <p class="subtitle">Chroma PersistentClient · LangGraph 5-node StateGraph · RAGAS · citation/policy 검증 · gspread Sheets · 추천질문 Top-5 — 2026-08-23 KST</p>
+  <p class="subtitle">Chroma PersistentClient · LangGraph 5-node StateGraph · Deterministic RAG evaluation + optional LLM-backed RAGAS · citation/policy 검증(human_review gate automated → human queue) · gspread Sheets · 추천질문 Top-5 — 2026-08-23 KST</p>
   <div>
     <span class="badge b-blue">VectorDB Chroma</span>
     <span class="badge b-purple">LangGraph</span>
@@ -59,28 +59,28 @@
 <!-- KPI -->
 <div class="kpi">
   <div class="kpi-box"><div class="num">10</div><div class="label">Chroma chunks</div><div class="delta up">collection rag_chunks</div></div>
-  <div class="kpi-box"><div class="num">5</div><div class="label">LangGraph nodes</div><div class="delta">retrieve→grade→rewrite→generate→human_review</div></div>
+  <div class="kpi-box"><div class="num">5</div><div class="label">LangGraph nodes</div><div class="delta">retrieve→grade→rewrite→generate→human_review gate</div></div>
   <div class="kpi-box"><div class="num">50</div><div class="label">RAGAS samples</div><div class="delta">out/ragas_result.json</div></div>
   <div class="kpi-box"><div class="num">30</div><div class="label">피드백 rows</div><div class="delta">out/sheets_mock.csv</div></div>
   <div class="kpi-box"><div class="num">5</div><div class="label">추천질문 Top-5</div><div class="delta up">curate_top_questions</div></div>
 </div>
 
-<!-- 1. RAGAS Before/After -->
-<h2>1 · RAGAS 평가 — Before / After (deterministic fallback · 50 samples)</h2>
+<!-- 1. Deterministic RAG metrics Before/After (optional LLM-backed RAGAS 별도) -->
+<h2>1 · Deterministic RAG metrics — Before / After (50 samples · Optional LLM-backed RAGAS 별도)</h2>
 <div class="grid">
   <div class="card">
-    <h3>RAGAS 지표 Before → After</h3>
-    <p style="font-size:12px;color:#8b949e;margin-bottom:8px">before (measured): hash <span class="mono">RAG_EMBEDDING_MODEL=hash</span> + <span class="mono">RAG_DISABLE_RERANK=1</span> · after: sentence-transformers(multilingual) + keyword rerank + rewrite 1회 · 소스: <span class="mono">out/baseline_metrics.json</span> (measured 0.3666/0.6133/0.9934) vs <span class="mono">out/improved_metrics.json</span> (0.42/0.627/0.9953) — <span class="mono">python scripts/compare_rag.py</span> / historical recorded baseline 0.3102/0.512/0.971 (2026-08-22, env not reproduced, see <span class="mono">out/baseline_historical_reference.json</span>)</p>
+    <h3>Deterministic RAG metrics Before → After — Optional LLM-backed RAGAS mode 별도</h3>
+    <p style="font-size:12px;color:#8b949e;margin-bottom:8px"><strong>Deterministic RAG metrics — no API key, token overlap, CI/regression</strong> · before (measured): hash <span class="mono">RAG_EMBEDDING_MODEL=hash</span> + <span class="mono">RAG_DISABLE_RERANK=1</span> · after: sentence-transformers(multilingual) + keyword rerank + rewrite 1회 · 소스: <span class="mono">out/baseline_metrics.json</span> (measured 0.3666/0.6133/0.9934) vs <span class="mono">out/improved_metrics.json</span> (0.42/0.627/0.9953) — <span class="mono">python scripts/compare_rag.py</span> / historical recorded baseline 0.3102/0.512/0.971 (2026-08-22, env not reproduced, see <span class="mono">out/baseline_historical_reference.json</span>) · <strong>Optional LLM-backed RAGAS mode — ragas.evaluate(), credentials needed</strong>는 키 있을 때 <span class="mono">ragas_library_attempt</span>로 별도 기록 (committed 수치 아님). <em>answer relevancy 미구현 — 3 metrics only.</em></p>
     <table>
-      <thead><tr><th>Metric</th><th>Before (measured)</th><th>After</th><th>Δ</th><th>RAGAS 경로</th></tr></thead>
+      <thead><tr><th>Metric</th><th>Before (measured)</th><th>After</th><th>Δ</th><th>출처</th></tr></thead>
       <tbody>
-        <tr><td><strong>context_precision</strong></td><td>0.3666 <span style="color:#8b949e;font-size:11px">(hist 0.3102)</span></td><td><strong>0.4200</strong></td><td class="up">+0.0534 (+14.6%)</td><td class="mono">ragas.metrics.context_precision</td></tr>
-        <tr><td><strong>context_recall</strong></td><td>0.6133 <span style="color:#8b949e;font-size:11px">(hist 0.512)</span></td><td><strong>0.6270</strong></td><td class="up">+0.0137 (+2.2%)</td><td class="mono">ragas.metrics.context_recall</td></tr>
-        <tr><td><strong>faithfulness</strong></td><td>0.9934 <span style="color:#8b949e;font-size:11px">(hist 0.971)</span></td><td><strong>0.9953</strong></td><td class="up">+0.0019 (+0.2%)</td><td class="mono">ragas.metrics.faithfulness</td></tr>
-        <tr><td class="mono">num_samples</td><td colspan="2" style="text-align:center">50</td><td>-</td><td class="mono">eval/ragas_eval.py evaluate_dataset</td></tr>
+        <tr><td><strong>context_precision</strong></td><td>0.3666 <span style="color:#8b949e;font-size:11px">(hist 0.3102)</span></td><td><strong>0.4200</strong></td><td class="up">+0.0534 (+14.6%)</td><td class="mono">Deterministic RAG metrics — token overlap</td></tr>
+        <tr><td><strong>context_recall</strong></td><td>0.6133 <span style="color:#8b949e;font-size:11px">(hist 0.512)</span></td><td><strong>0.6270</strong></td><td class="up">+0.0137 (+2.2%)</td><td class="mono">Deterministic RAG metrics — token overlap</td></tr>
+        <tr><td><strong>faithfulness</strong></td><td>0.9934 <span style="color:#8b949e;font-size:11px">(hist 0.971)</span></td><td><strong>0.9953</strong></td><td class="up">+0.0019 (+0.2%)</td><td class="mono">Deterministic RAG metrics — token overlap</td></tr>
+        <tr><td class="mono">num_samples</td><td colspan="2" style="text-align:center">50</td><td>-</td><td class="mono">eval/ragas_eval.py evaluate_dataset / Optional LLM-backed RAGAS: ragas.metrics.* + ragas.evaluate</td></tr>
       </tbody>
     </table>
-    <p style="font-size:11px;color:#8b949e;margin-top:8px">※ <span class="mono">ragas</span> 라이브러리 직접 호출: <span class="mono">from ragas.metrics import context_precision, context_recall, faithfulness</span> · LLM evaluator 없이 deterministic token-overlap fallback으로 산출. LLM 키가 있으면 <span class="mono">ragas.evaluate()</span> 경로도 시도 (로그: ragas_library_attempt). Measured baseline via <span class="mono">RAG_EMBEDDING_MODEL=hash RAG_DISABLE_RERANK=1</span> worktree repro (see <span class="mono">out/repro_investigation.md</span>); historical 0.3102 preserved in <span class="mono">out/baseline_historical_reference.json</span> with <span class="mono">historical_recorded_baseline</span> flag — exact 2026-08-22 env not reproduced on current synthetic (10 chunks).</p>
+    <p style="font-size:11px;color:#8b949e;margin-top:8px">※ <span class="mono">ragas</span> 라이브러리 직접 호출: <span class="mono">from ragas.metrics import context_precision, context_recall, faithfulness</span> · <strong>Deterministic RAG metrics — no API key, token overlap, CI/regression</strong>으로 산출된 committed 수치. <strong>Optional LLM-backed RAGAS mode — ragas.evaluate(), credentials needed</strong>는 LLM 키가 있을 때 <span class="mono">ragas.evaluate()</span> 경로도 시도 (로그: ragas_library_attempt). Measured baseline via <span class="mono">RAG_EMBEDDING_MODEL=hash RAG_DISABLE_RERANK=1</span> worktree repro (see <span class="mono">out/repro_investigation.md</span>); historical 0.3102 preserved in <span class="mono">out/baseline_historical_reference.json</span> with <span class="mono">historical_recorded_baseline</span> flag — exact 2026-08-22 env not reproduced on current synthetic (10 chunks). <em>answer relevancy는 코드에 미구현(Select-String 0건)으로 표기에서 제외.</em></p>
     <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
       <span class="pill" style="background:#21262d;color:#c9d1d9">aggregate: avg_context_precision 0.42</span>
       <span class="pill" style="background:#21262d;color:#c9d1d9">avg_recall 0.627</span>
@@ -189,8 +189,9 @@
 
 <!-- 3. LangGraph Trace -->
 <h2>3 · LangGraph 실행 트레이스 — VectorDB 검색 로그</h2>
+<p style="font-size:12px;color:#8b949e;margin: -8px 0 12px;border-left:3px solid var(--yellow);padding:6px 10px;background:#161b22">human_review 정확화 — 현재 <span class="mono">graph/nodes.py :: human_review</span>는 자동화된 gate(citation/policy/token overlap ≥0.15 검증)로 <span class="mono">approved</span>/<span class="mono">needs_review</span>를 판정해 human queue로 라우팅한다. 전체 리뷰 UI(Approve/Reject/Edit/Note, SQLite/CSV)는 이 gate 위에 추가 가능. Current human_review is an automated gate (citation/policy check) that routes to human queue; a full review UI (Approve/Reject/Edit/Note with SQLite/CSV) can be added on top.</p>
 <div class="card">
-  <div class="trace-meta">소스: <span class="mono">out/ops_rag.log</span> · 쿼리: <span class="mono">환불 정책</span> · StateGraph: retrieve → grade → generate → human_review · <span class="pill pill-approved">approved</span> <span class="pill pill-relevant">relevant</span></div>
+  <div class="trace-meta">소스: <span class="mono">out/ops_rag.log</span> · 쿼리: <span class="mono">환불 정책</span> · StateGraph: retrieve → grade → generate → human_review gate(automated) → human queue · <span class="pill pill-approved">approved</span> <span class="pill pill-relevant">relevant</span></div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
     <span class="mono" style="background:#21262d;padding:4px 8px;border-radius:6px">Chroma collection rag_chunks · 10 chunks</span>
     <span class="mono" style="background:#21262d;padding:4px 8px;border-radius:6px">search top_k=5 · n_fetch=15</span>
@@ -242,7 +243,7 @@
 [review_status] approved
 [sheets] appended 1 rows -> out/sheets_mock.csv
 </pre>
-  <p style="font-size:11px;color:#8b949e;margin-top:8px">실명 VectorDB 검색 로그 표시 — <span class="mono">rag/vector_store.py :: search()</span> score/distance/rerank_score, <span class="mono">graph/nodes.py :: grade/generate/human_review</span> 노드별 로그, citations 2개, overlap 0.89. Rewrite는 relevant이므로 스킵(iterations=0). 전체 로그 원본: <a href="../out/ops_rag.log">out/ops_rag.log</a></p>
+  <p style="font-size:11px;color:#8b949e;margin-top:8px">실명 VectorDB 검색 로그 표시 — <span class="mono">rag/vector_store.py :: search()</span> score/distance/rerank_score, <span class="mono">graph/nodes.py :: grade/generate/human_review gate(automated)</span> 노드별 로그, citations 2개, overlap 0.89. Rewrite는 relevant이므로 스킵(iterations=0). <span class="mono">human_review</span>는 자동화된 gate이며 <span class="mono">needs_review</span> 시 실제 사람 큐로 라우팅된다. 전체 로그 원본: <a href="../out/ops_rag.log">out/ops_rag.log</a></p>
 </div>
 
 <!-- 4. Architecture -->
@@ -275,8 +276,8 @@ open docs/report.html                          # macOS</pre>
 </div>
 
 <div class="footer">
-  rag-ops-console — Online RAG Ops · VectorDB Chroma · LangGraph StateGraph · RAGAS · gspread Sheets · Streamlit Dashboard<br/>
-  Generated 2026-08-23 KST · Sources: <span class="mono">out/ragas_result.json (50 samples, agg 0.42/0.627/0.9953) · out/ops_rag.log · out/sheets_mock.csv (30 rows) · out/feedback_to_sheet.log</span>
+  rag-ops-console — Online RAG Ops · VectorDB Chroma · LangGraph StateGraph · Deterministic RAG metrics + optional LLM-backed RAGAS · gspread Sheets · Streamlit Dashboard<br/>
+  Generated 2026-08-23 KST · Sources: <span class="mono">out/ragas_result.json (50 samples, agg 0.42/0.627/0.9953 Deterministic RAG metrics) · out/ops_rag.log · out/sheets_mock.csv (30 rows) · out/feedback_to_sheet.log</span> · <span class="mono">Deterministic RAG metrics — no API key, token overlap, CI/regression / Optional LLM-backed RAGAS mode — ragas.evaluate(), credentials needed</span>
 </div>
 
 <script>

@@ -24,7 +24,7 @@ flowchart TB
         R2{"② grade<br/>graph/nodes.py :: grade()<br/>score ≥ 0.25 & overlap ≥ 1 ?"}
         R3["③ rewrite<br/>graph/nodes.py :: rewrite()<br/>규칙 기반 (환불→7일, 짧은 질의 보강)<br/>max 1회"]
         R4["④ generate<br/>graph/nodes.py :: generate()<br/>extractive template<br/>citations: top-2 chunk_id"]
-        R5{"⑤ human_review<br/>graph/nodes.py :: human_review()<br/>FORBIDDEN_PHRASES / citation /<br/>token overlap ≥ 0.15"}
+        R5{"⑤ human_review gate (automated)<br/>graph/nodes.py :: human_review()<br/>FORBIDDEN_PHRASES / citation /<br/>token overlap ≥ 0.15<br/>approved / needs_review → human queue"}
         R1 --> R2
         R2 -->|"relevant"| R4
         R2 -->|"irrelevant, iter<1"| R3
@@ -47,7 +47,7 @@ flowchart TB
         V3 --> V4
     end
 
-    VER -->|review_status: approved / needs_review| FB
+    VER -->|"review_status: approved / needs_review<br/>(human_review gate automated → human queue)"| FB
 
     %% ── 피드백 ──
     FB["고객 피드백 모니터링<br/>monitor/feedback_classifier.py<br/>classify_feedback() 규칙 기반<br/>sentiment: positive / negative<br/>failure_category: 긍정 / 버그 / 개선 / 지식 부족<br/>root_cause: retrieval_miss / generation_error /<br/>citation_missing / policy_violation /<br/>unclear_question / outdated_doc<br/>review_status: auto_resolved / needs_human_review"]
@@ -64,7 +64,7 @@ flowchart TB
 
     REC -.->|"선제안 콘텐츠 운영<br/>FAQ / 가이드 문서 보강"| ING
     REC -.->|"문서 개선 → RAGAS 재평가"| VER
-    FB -.->|"needs_human_review(20건)<br/>LangGraph human_review 큐 통합"| R5
+     FB -.->|"needs_human_review(20건)<br/>human_review gate → human queue 통합"| R5
 
     %% ── 스타일 ──
     style ING fill:#1f6feb,stroke:#388bfd,color:#fff

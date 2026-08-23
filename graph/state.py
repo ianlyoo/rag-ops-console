@@ -21,7 +21,9 @@ class GraphState(TypedDict, total=False):
         rewritten_query: grade 실패 시 재작성된 질문 (재시도용).
         generation: 생성된 답변 (citation 포함).
         citations: 답변에 포함된 인용 목록 [{doc_id, chunk_id}].
-        review_status: human review 상태 — "approved" | "needs_review" | "pending".
+        review_status: human_review gate(automated) 상태 — "approved" | "needs_review" | "pending".
+            automated gate가 판정하며 needs_review는 실제 사람 큐로 라우팅된다.
+            전체 리뷰 UI(Approve/Reject/Edit/Note, SQLite/CSV)는 이 gate 위에 추가 가능.
         iterations: 재시도 횟수 (rewrite→retrieve 루프 카운터).
     """
 

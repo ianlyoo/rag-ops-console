@@ -236,7 +236,7 @@ def main() -> None:
 
     with right:
         st.subheader("🧭 LangGraph 트레이스")
-        st.caption("`graph/nodes.py` 5노드 · `graph/run.py :: build_graph()` StateGraph · 조건부 라우팅: grade→generate / grade→rewrite→retrieve")
+        st.caption("`graph/nodes.py` 5노드 · `graph/run.py :: build_graph()` StateGraph · 조건부 라우팅: grade→generate / grade→rewrite→retrieve · human_review는 automated gate(citation/policy/overlap) — `needs_review`는 human queue로 라우팅, 전체 리뷰 UI(Approve/Reject/Edit/Note, SQLite/CSV)는 이 gate 위에 추가 가능")
         # status pills
         if result and result.get("graph_result"):
             gr = result["graph_result"]
@@ -246,7 +246,8 @@ def main() -> None:
                 st.markdown(f"**graded:** `{graded}` " + ("🟢 relevant" if graded == "relevant" else "🟡 irrelevant" if graded == "irrelevant" else ""))
             with p2:
                 rs = gr.get("review_status", "?")
-                st.markdown(f"**review_status:** `{rs}` " + ("🟢 approved" if rs == "approved" else "🔴 needs_review" if rs == "needs_review" else ""))
+                st.markdown(f"**review_status:** `{rs}` " + ("🟢 approved" if rs == "approved" else "🔴 needs_review → human queue" if rs == "needs_review" else ""))
+                st.caption("gate(automated): citation/policy/overlap → approved/needs_review; needs_review는 human queue로 라우팅")
             with p3:
                 cits = gr.get("citations", [])
                 st.markdown(f"**citations:** {len(cits)}  " + (", ".join(c.get("chunk_id","") for c in cits[:2]) if cits else "—"))
@@ -307,15 +308,15 @@ def main() -> None:
         st.caption(f"by_root_cause: {by_rc} · by_review_status: {sheets.get('by_review',{})}")
 
     with b2:
-        st.subheader("📈 RAGAS Before→After (50 samples)")
-        st.caption("`eval/ragas_eval.py` · context_precision / recall / faithfulness · deterministic fallback")
+        st.subheader("📈 Deterministic RAG metrics Before→After (50 samples · Optional LLM-backed RAGAS 별도)")
+        st.caption("`eval/ragas_eval.py` · Deterministic RAG metrics — no API key, token overlap, CI/regression · context_precision / recall / faithfulness · Optional LLM-backed RAGAS mode — ragas.evaluate(), credentials needed (answer relevancy 미구현)")
         ragas_tbl = [
             {"metric": "context_precision", "before": 0.3102, "after": agg.get("avg_context_precision", 0.42) if agg else 0.42, "delta": "+0.11"},
             {"metric": "context_recall", "before": 0.5120, "after": agg.get("avg_context_recall", 0.627) if agg else 0.627, "delta": "+0.115"},
             {"metric": "faithfulness", "before": 0.9710, "after": agg.get("avg_faithfulness", 0.9953) if agg else 0.9953, "delta": "+0.024"},
         ]
         st.table(ragas_tbl)
-        st.caption("before: hash-embedding · after: sentence-transformers + rerank + rewrite 1회")
+        st.caption("Deterministic RAG metrics — token overlap · before: hash-embedding · after: sentence-transformers + rerank + rewrite 1회 · Optional LLM-backed RAGAS는 키 있을 때 별도")
         # tiny feedback link
         st.markdown("로그: `out/ragas_result.json` · `out/feedback_to_sheet.log` · `out/ops_rag.log`")
 

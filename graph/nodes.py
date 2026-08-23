@@ -193,13 +193,22 @@ def generate(state: GraphState) -> dict[str, Any]:
 
 
 def human_review(state: GraphState) -> dict[str, Any]:
-    """Human review — citation / policy 검증.
+    """human_review gate (automated) — citation / policy 검증.
+
+    현재 human_review는 자동화된 gate이다 — citation 유무, 금지 구문,
+    hallucination(토큰 overlap) 여부로 approved / needs_review 를 결정하고
+    needs_review는 실제 사람 큐(human queue)로 라우팅된다. 전체 리뷰 UI
+    (Approve/Reject/Edit/Note, SQLite/CSV)는 이 gate 위에 추가할 수 있다.
 
     검증:
     - citation이 없으면 needs_review
     - generation에 금지 구문(FORBIDDEN_PHRASES)이 포함되면 needs_review
     - generation이 retrieved 문서 텍스트와 무관하면(표절도 낮으면) needs_review
     - 그 외 approved
+
+    Note: Current human_review is an automated gate (citation/policy check)
+    that routes to human queue; a full review UI (Approve/Reject/Edit/Note
+    with SQLite/CSV) can be added on top.
     """
     generation: str | None = state.get("generation")
     citations: list[dict] = state.get("citations", [])  # type: ignore[assignment]
