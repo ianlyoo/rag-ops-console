@@ -60,6 +60,16 @@ Pattern: 3 of the 50 samples with `faithfulness=1.0` have `context_recall < 0.3`
 
 Aggregate on this run (`out/ragas_result.json:454-459`): `avg_context_precision 0.42, avg_context_recall 0.627, avg_faithfulness 0.9953`. Faithfulness is the *highest* of the three — 0.995 — precisely because generation is extractive. If a reviewer looked only at faithfulness, the system would appear near-perfect while 34% of answers miss the question (failure_rate 0.34 in `llm-eval-pipeline/out/metrics_report.json`).
 
+## Metric Separation
+- Retrieval relevance: whether retrieved docs answer the question
+- Context recall: coverage of needed context (RAGAS recall 0.2 vs 0.909)
+- Faithfulness: grounding vs retrieved context (1.0 even when wrong)
+- Answer correctness: final answer vs ground truth (requires separate check)
+
+> Faithfulness measures grounding against retrieved context, not whether retrieval answered the user's question.
+
+Answer correctness (RAGAS `answer_correctness` / `answer_relevancy`) is not computed as a direct LLM-judge metric in this deterministic evaluation — it is tracked via separate retrieval relevance + correctness checks (offline keyword Hit@5 proxy in `eval/metrics.py` and `llm-eval-pipeline/eval/metrics.py`), not claimed as a computed RAGAS score. See `docs/eval.md` §2 for the split between online deterministic RAGAS (3 metrics) and offline correctness proxy.
+
 ### 2.2 Faithfulness alone is insufficient
 
 - **Faithfulness is a conditional metric**: it answers `P(generation is supported | retrieved)`, not `P(answer is correct | question)`. When retrieval fails, faithful generation preserves the failure.
