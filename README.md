@@ -2,19 +2,13 @@
 
 Online RAG 운영 콘솔 — VectorDB 검색 · LangGraph 오케스트레이션 · RAGAS 평가 · 답변 검증 · 고객 피드백 모니터링→Sheets · 추천질문 큐레이션을 한 곳에서 운영하는 실전 RAG Ops.
 
-> **카카오뱅크 AI 운영 어시스턴트 JD 정렬**
+> **운영 포커스** — RAG 운영 콘솔이 다루는 핵심 운영 업무
 >
-> - RAG 문서 생성 및 관리
-> - 고객 피드백 모니터링 및 개선사항 발굴
-> - 모델 업데이트 시 답변 검증 및 개선사항 발굴
-> - 선제안/추천 질문 콘텐츠 운영
-> - AI 데이터 모니터링
->
-> 본 콘솔은 위 운영 업무를 **VectorDB 검색 → LangGraph 오케스트레이션 → RAGAS 평가 → 답변 검증 → 고객 피드백 모니터링→Sheets → 추천질문 큐레이션** 파이프라인으로 구현한다.
+> 본 콘솔은 **VectorDB 검색 → LangGraph → RAGAS → 답변 검증 → 피드백 모니터링→Sheets → 추천질문 큐레이션** 파이프라인으로 구현한다.
 
-## JD 문장 그대로 목차
+## Pipeline — 운영 파이프라인
 
-| # | JD 키워드 | 모듈 | 설명 |
+| # | 파이프라인 단계 | 모듈 | 설명 |
 |---|-----------|------|------|
 | 1 | **VectorDB 검색** | `rag/vector_store.py` | Chroma persistent 임베딩 · 검색 · rerank (실명 VectorDB) |
 | 2 | **LangGraph 오케스트레이션** | `graph/` | retrieve → grade → rewrite → generate → human review 4~5노드 조건부 라우팅 |
@@ -67,21 +61,21 @@ flowchart LR
 rag-ops-console/
 ├── rag/                        # VectorDB 검색 (Chroma)
 │   ├── __init__.py
-│   └── vector_store.py         # (예정) Chroma persistent + 임베딩/검색/rerank — Task 15
-├── graph/                      # LangGraph 오케스트레이션 — Task 15
+│   └── vector_store.py         # Chroma persistent + 임베딩/검색/rerank
+├── graph/                      # LangGraph 오케스트레이션
 │   ├── __init__.py
 │   ├── state.py                # LangGraph state 정의
 │   └── nodes.py                # retrieve→grade→rewrite→generate→human review
-├── eval/                       # RAGAS + 답변 검증 — Task 15
+├── eval/                       # RAGAS + 답변 검증
 │   ├── __init__.py
-│   └── ragas_eval.py           # (예정) RAGAS faithfulness/precision/recall
-├── monitor/                    # 고객 피드백 운영 — Task 16
+│   └── ragas_eval.py           # RAGAS faithfulness/precision/recall
+├── monitor/                    # 고객 피드백 운영
 │   ├── __init__.py
 │   ├── feedback_classifier.py  # 긍정/부정/버그/개선 + root-cause
 │   └── feedback_to_sheet.py    # Google Sheets 적재 + 추천질문 Top-5
 ├── docs/
-│   ├── architecture.mmd        # (예정) 운영 아키텍처 Mermaid
-│   └── report.html             # (예정) RAGAS/피드백 리포트
+│   ├── architecture.mmd        # 운영 아키텍처 Mermaid
+│   └── report.html             # RAGAS/피드백 리포트
 ├── data/                       # 샘플 문서/피드백 (대용량 원본은 .gitignore)
 │   └── .gitkeep
 ├── tests/
@@ -91,7 +85,7 @@ rag-ops-console/
 └── LICENSE
 ```
 
-## 운영 흐름 — 카카오뱅크 스타일
+## 운영 흐름
 
 1. **RAG 문서 생성·관리** — 문서를 청킹해 Chroma에 적재, 버전별 persistent 디렉터리로 관리.
 2. **AI 데이터 모니터링** — LangGraph 트레이스(노드별 latency/grade 결과)와 RAGAS 지표를 `eval/ragas_eval.py`에서 집계.
@@ -110,7 +104,7 @@ pytest -q
 ruff check .
 ```
 
-> **Heavy deps:** `chromadb`, `langgraph`, `ragas`는 본 레포의 핵심이므로 `requirements.txt`에 포함된다. 로컬 경량 실행 시 `pip install chromadb langgraph` 없이도 `pytest -q` / `ruff check .`는 통과하나, VectorDB/LangGraph 실행(Task 15)은 설치가 필요하다.
+> **Heavy deps:** `chromadb`, `langgraph`, `ragas`는 본 레포의 핵심이므로 `requirements.txt`에 포함된다. 로컬 경량 실행 시 `pip install chromadb langgraph` 없이도 `pytest -q` / `ruff check .`는 통과하나, VectorDB/LangGraph 실행은 설치가 필요하다.
 
 ## CI
 
@@ -125,7 +119,23 @@ ruff check .
 
 B는 A의 코드를 복사하지 않고 A 산출물을 데이터로 consume한다. 경계 위반은 `diff -r llm-eval-pipeline/eval rag-ops-console/eval`로 검증한다.
 
-## Demo — 운영 리포트 + 대시보드 (Task 17, 30초)
+## Evaluation
+
+### Offline deterministic metrics
+
+No API key required. Used for CI and regression testing — token-overlap 기반 context precision/recall/faithfulness. Committed 수치는 deterministic이며 표 제목은 Deterministic RAG Evaluation으로 명시.
+
+### RAGAS mode
+
+Uses ragas.evaluate() with LLM-backed metrics when credentials are available — ragas.metrics faithfulness/context_precision 등 LLM evaluator 기반.
+
+### Evaluation Finding
+
+Extractive generation produced near-perfect grounding scores (1.0) even when retrieval selected the wrong document (e.g., 자동 롤백 조건 → 경비 청구 문서). This showed faithfulness alone was insufficient, so the pipeline separately tracks retrieval relevance and answer correctness.
+
+자세한 실패 사례 분석은 `docs/evaluation_failure_analysis.md`를 참고한다.
+
+## Demo — 운영 리포트 + 대시보드
 
 > VectorDB(Chroma) 실명 검색 로그와 LangGraph 5-node 트레이스를 브라우저에서 확인하는 데모. RAGAS Before/After + 피드백 파이 차트는 `docs/report.html`에, 실시간 검색은 `monitor/dashboard.py`에 있다.
 
