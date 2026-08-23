@@ -68,7 +68,7 @@ Aggregate on this run (`out/ragas_result.json:454-459`): `avg_context_precision 
 
 ### 2.3 Why this case matters for reviewers
 
-This is the single most persuasive example for showing evaluation maturity. A junior report would claim "faithfulness 99% — no hallucination." A reviewer who has seen RAG failures knows that extractive systems can be 100% faithful and 0% useful. This `자동 롤백 → 경비 가이드` case is the counter-example that proves the team tracks the *right* metrics. It appears in Task 15's manual inspection (`wrong_note.md` analogue) and survives into the 50-sample RAGAS run, so it is not a one-off — it is systematic: short Korean ops queries under-retrieve against a finance-heavy corpus.
+This is the single most persuasive example for showing evaluation maturity. A junior report would claim "faithfulness 99% — no hallucination." A reviewer who has seen RAG failures knows that extractive systems can be 100% faithful and 0% useful. This `자동 롤백 → 경비 가이드` case is the counter-example that proves the team tracks the *right* metrics. It appears in the offline manual inspection (`wrong_note.md` analogue) and survives into the 50-sample RAGAS run, so it is not a one-off — it is systematic: short Korean ops queries under-retrieve against a finance-heavy corpus.
 
 Related anti-pattern in same corpus: `rg "경비 청구" data/synthetic_qa.jsonl` returns 4 finance QA entries; `rg "롤백|rollback" data/synthetic_qa.jsonl` returns only 1 (the gold). Embedding proximity clusters `자동 롤백 조건은?` near `경비` because both are short formal Korean nominal phrases, not because of semantic overlap. This is a textbook embedding-space collision — fix with query expansion, not faithfulness tuning.
 

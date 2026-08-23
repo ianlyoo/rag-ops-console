@@ -1,4 +1,4 @@
-# rag-ops-console — 평가 리포트 (Online, Task 18)
+# rag-ops-console — 평가 리포트 (Online)
 
 > Online 운영 콘솔 — Chroma VectorDB + LangGraph 5-node + RAGAS + Sheets 30행. A(llm-eval-pipeline) synthetic 50을 입력으로 consume, 내부 로직은 B 고유.
 
@@ -9,9 +9,9 @@
 | VectorDB | Chroma PersistentClient, ingested 10 chunks (dedup) | `out/ops_rag.log` ingested=10, `rag/vector_store.py` |
 | 검색 | score = 1-distance (cosine), keyword rerank +0.1 | `out/ops_rag.log` top_score 0.35~0.45 |
 | Retrieval Hit (RAGAS recall proxy) | avg_context_recall 0.627 (min 0.0 max 1.0) | `out/ragas_result.json` aggregate |
-| RAGAS context_precision | 0.42 (before 0.31, +0.11) | `out/ragas_result.json` aggregate |
-| RAGAS context_recall | 0.627 (before 0.512, +0.115) | 동일 |
-| RAGAS faithfulness | 0.9953 (before 0.971, +0.024) | 동일, 50 samples deterministic fallback |
+| RAGAS context_precision | 0.42 (measured before 0.3666, hist 0.31, +0.053) | `out/improved_metrics.json` aggregate (measured `out/baseline_metrics.json` 0.3666, hist `out/baseline_historical_reference.json` 0.31) |
+| RAGAS context_recall | 0.627 (measured before 0.6133, hist 0.512, +0.014) | 동일 |
+| RAGAS faithfulness | 0.9953 (measured before 0.9934, hist 0.971, +0.002) | 동일, 50 samples deterministic fallback |
 | LangGraph | retrieve->grade->rewrite(최대1)->generate->human_review, iterations 0/1 | `out/ops_rag.log` + `graph/run.py` |
 | Sheets | 30 rows appended, by_cat {긍정10 버그10 개선9 지식부족1} | `out/sheets_mock.csv` + `out/feedback_to_sheet.log` |
 | 추천 질문 | Top-5 (환불/연차/API/VPN/장애 각 freq 2) | `out/feedback_to_sheet.log` curated top-5 |
@@ -20,7 +20,7 @@
 ## 2. RAGAS 상세 (eval/ragas_eval.py)
 
 - **정의**: `context_precision = relevant_retrieved / retrieved` (reference 토큰 15% overlap 기준), `context_recall = ref_tok in retrieved / ref_tok`, `faithfulness = generation_tok in retrieved / generation_tok` — LLM 없이 deterministic fallback. ragas 라이브러리 호출 경로는 `ragas.metrics.{context_precision,context_recall,faithfulness}` + `ragas.evaluate`로 명시, API 키 없으면 fallback.
-- **수치**: 50 samples, avg_precision 0.42, avg_recall 0.627, avg_faith 0.9953 — precision이 낮아도 recall/faith 높음은 rerank+rewrite로 근거 문서가 생성에 충분히 포함됨을 의미. before( hash-embedding ) 대비 after( sentence-transformers + rerank+rewrite1 ) 개선 +0.11/+0.115/+0.024는 `monitor/dashboard.py` Before/After 테이블과 동일.
+- **수치**: 50 samples, avg_precision 0.42, avg_recall 0.627, avg_faith 0.9953 — precision이 낮아도 recall/faith 높음은 rerank+rewrite로 근거 문서가 생성에 충분히 포함됨을 의미. measured before( hash `RAG_EMBEDDING_MODEL=hash` + `RAG_DISABLE_RERANK=1` 0.3666) 대비 after( sentence-transformers + rerank+rewrite1 0.42) 개선 +0.053/+0.014/+0.002 (hist 0.31->0.42 +0.11은 `out/baseline_historical_reference.json` env not reproduced, see `out/repro_investigation.md`).
 - **재현**:
 
 ```bash
@@ -42,7 +42,7 @@ Get-Content out/ragas_result.json | Select-Object -First 40
 - `out/ragas_result.json` samples 50, 각 generation[:200] + retrieved_count 3 + 3 metrics — faith 0.97~1.0 분포.
 - `out/sheets_mock.csv`: header `query,response,failure_category,root_cause,review_status,citations` 30행, `out/feedback_to_sheet.log`: classified 30, appended 30, curated top-5.
 
-## 4. 피드백 운영 루프 (Task 16 증분)
+## 4. 피드백 운영 루프
 
 - `monitor/feedback_classifier.py`: 규칙 기반 4 category + 6 root-cause + review_status (긍정 auto_resolved 10 / 부정 needs_human_review 20)
 - `monitor/feedback_to_sheet.py`: gspread `GOOGLE_APPLICATION_CREDENTIALS`/`GOOGLE_SHEETS_URL` 있으면 실 Sheets, 없으면 `out/sheets_mock.csv` CSV mock (header 일치), `curate_top_questions`는 부정 우선 빈도+키워드 클러스터링으로 Top-5.

@@ -164,7 +164,7 @@ def main() -> None:
 
     st.set_page_config(page_title="RAG Ops Console — 운영 대시보드", layout="wide", page_icon="◉")
     st.title("◉ RAG Ops Console — 운영 대시보드")
-    st.caption("VectorDB Chroma · LangGraph 5-node · RAGAS · Sheets 모니터링 · 추천질문 Top-5 — Task 17 Demo (30초)")
+    st.caption("VectorDB Chroma · LangGraph 5-node · RAGAS · Sheets 모니터링 · 추천질문 Top-5 — Demo (30초)")
 
     # badges
     st.markdown(

@@ -1,4 +1,4 @@
-"""Scaffold sanity tests — Task 14 verification."""
+"""Scaffold sanity tests."""
 
 from pathlib import Path
 
@@ -31,7 +31,7 @@ def test_readme_contains_jd_keywords() -> None:
 
 
 def test_no_eval_code_copy() -> None:
-    """B must not copy A eval code — guard for Task 18 diff check (stub phase)."""
+    """B must not copy A eval code — guard for cross-repo diff check."""
     # Scaffold phase: eval dir should be empty except __init__.py
     root = Path(__file__).resolve().parents[1]
     eval_files = [p.name for p in (root / "eval").iterdir() if p.is_file()]

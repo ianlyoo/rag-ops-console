@@ -1,4 +1,4 @@
-# 고객 피드백 모니터링 리포트 — Feedback → Sheets → 추천질문 운영 (Task 16)
+# 고객 피드백 모니터링 리포트 — Feedback → Sheets → 추천질문 운영
 
 > **운영 깊이 확보 (경량화 금지):** 30개 실제 피드백을 긍정/부정/버그/개선 + root-cause로 분류하고, Google Sheets에 적재한 뒤 상위 5개 추천 질문을 큐레이션하여 선제안 콘텐츠로 환류한다. 전 과정은 LangGraph `human_review` 큐와 연동된다.
 

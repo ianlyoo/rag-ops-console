@@ -4,7 +4,7 @@
 
 - Chroma PersistentClient: ./data/chroma (로컬 persistent directory)
 - Embedding: sentence-transformers (로컬, API 키 불필요)
-  기본 `paraphrase-multilingual-MiniLM-L12-v2` (한국어 고려, Task 명세 권장)
+  기본 `paraphrase-multilingual-MiniLM-L12-v2` (Recommended default per design — multilingual, Korean coverage)
   폴백 `all-MiniLM-L6-v2` / hash-embedding (오프라인 / 다운로드 실패 시)
 
 API:
@@ -115,10 +115,16 @@ def _hash_embed(texts: list[str], dim: int = 384) -> list[list[float]]:
 
 
 def _embed(texts: list[str]) -> list[list[float]]:
-    """임베딩 — sentence-transformers 우선, 실패 시 hash fallback."""
+    """임베딩 — sentence-transformers 우선, 실패 시 hash fallback.
+
+    Env RAG_EMBEDDING_MODEL=hash 이면 즉시 hash fallback (baseline 재현용).
+    """
     if not texts:
         return []
     model_name = _resolve_model_name()
+    # baseline repro: hash 강제 시 ST 시도 없이 즉시 hash
+    if model_name == "hash":
+        return _hash_embed(texts)
     model = _load_sentence_transformer(model_name)
     if model is not None:
         try:
@@ -391,14 +397,19 @@ def search(
         )
 
     # rerank: 1) 키워드 겹침 보너스 2) 점수 내림차순
-    # 키워드 보너스: 질의 토큰이 문서에 포함되면 score에 가중치
-    query_tokens = set(re.findall(r"\w+", query.lower()))
-    for item in items:
-        doc_tokens = set(re.findall(r"\w+", item["text"].lower()))
-        overlap = len(query_tokens & doc_tokens)
-        # 보너스: overlap 비율 * 0.1 (최대 0.1 가산, rerank 목적)
-        bonus = (overlap / max(len(query_tokens), 1)) * 0.1
-        item["rerank_score"] = item["score"] + bonus
+    # RAG_DISABLE_RERANK=1 이면 보너스 없이 score 순으로 정렬 (baseline 재현용)
+    disable_rerank = os.environ.get("RAG_DISABLE_RERANK", "").strip().lower() in ("1", "true", "yes")
+    if disable_rerank:
+        for item in items:
+            item["rerank_score"] = item["score"]
+    else:
+        query_tokens = set(re.findall(r"\w+", query.lower()))
+        for item in items:
+            doc_tokens = set(re.findall(r"\w+", item["text"].lower()))
+            overlap = len(query_tokens & doc_tokens)
+            # 보너스: overlap 비율 * 0.1 (최대 0.1 가산, rerank 목적)
+            bonus = (overlap / max(len(query_tokens), 1)) * 0.1
+            item["rerank_score"] = item["score"] + bonus
 
     items.sort(key=lambda x: x["rerank_score"], reverse=True)
 

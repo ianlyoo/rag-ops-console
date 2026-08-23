@@ -1,7 +1,7 @@
 """graph.state — LangGraph state 정의.
 
 LangGraph StateGraph에서 사용되는 상태 스키마.
-Task 15 명세 기준 8개 필드:
+GraphState 8개 필드:
     query, retrieved, graded, rewritten_query, generation, citations,
     review_status, iterations
 """

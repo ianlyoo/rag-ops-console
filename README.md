@@ -23,7 +23,7 @@ Online RAG 운영 콘솔 — VectorDB 검색 · LangGraph 오케스트레이션 
 >
 > - **Offline 품질/학습 평가** — synthetic data 생성, Rule 검증, LLM Judge, 오답 taxonomy, lm-eval / PyTorch 실험은 [`llm-eval-pipeline`](https://github.com/ianlyoo/llm-eval-pipeline) (A)에서 담당한다.
 > - **Online 운영(B)** — VectorDB 검색, LangGraph 오케스트레이션, RAGAS 평가, 답변 검증, 고객 피드백 모니터링→Sheets, 추천질문 큐레이션이 본 레포의 책임이다.
-> - **데이터 계약:** B는 A 산출물을 **consume**한다 — 예: `llm-eval-pipeline/data/synthetic_qa.jsonl`을 검색·평가 입력으로 링크/복사해 활용하되, **A의 `eval/` 코드를 복사하지 않는다** (Task 18에서 `diff`로 검증).
+> - **데이터 계약:** B는 A 산출물을 **consume**한다 — 예: `llm-eval-pipeline/data/synthetic_qa.jsonl`을 검색·평가 입력으로 링크/복사해 활용하되, **A의 `eval/` 코드를 복사하지 않는다** (Cross-repo code duplication is checked with a directory diff during validation).
 > - B는 A 없이도 동작하나, A의 합성 QA가 있으면 더 풍부한 RAGAS/회귀 평가가 가능하다.
 
 ```
