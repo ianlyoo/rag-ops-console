@@ -48,7 +48,11 @@ Get-Content out/ragas_result.json | Select-Object -First 40
 - `monitor/feedback_to_sheet.py`: gspread `GOOGLE_APPLICATION_CREDENTIALS`/`GOOGLE_SHEETS_URL` 있으면 실 Sheets, 없으면 `out/sheets_mock.csv` CSV mock (header 일치), `curate_top_questions`는 부정 우선 빈도+키워드 클러스터링으로 Top-5.
 - 검증: `python -m monitor.feedback_classifier --input monitor/data/feedback_sample.csv`, `python -m monitor.feedback_to_sheet` (verified 30 rows)
 
-## 5. 검증
+## 5. Evaluation Finding — Faithfulness-but-wrong (요약)
+
+대표 실패 `자동 롤백 조건은?` → retrieved `경비 청구 가이드(식대 3만원)` → `faithfulness 1.0` but completely wrong — faithfulness alone is insufficient. faithfulness는 generation이 retrieved에 근거했는지만 측정하며, retrieved 자체가 틀리면 완벽히 근거 있으나 완전히 틀린 답이 된다. 파이프라인은 retrieval relevance(`context_precision 0.42 / context_recall 0.627`)와 answer correctness(`Hit@5` proxy)를 별도 추적하고 LangGraph rewrite 노드 + query expansion(`자동 롤백 → Prometheus + error rate 5% + Helm`)으로 복구한다. 전체 분석: [`docs/evaluation_failure_analysis.md`](evaluation_failure_analysis.md) — `out/ragas_result.json:13-20` (faith 1.0, recall 0.2, gold `Automatic rollback if error rate >5% for 5 minutes (Prometheus alert)` in `09_devops_deploy` vs `10_finance_expense` meal 3만원) 및 `out/ragas_result.json:319-326`, `out/ops_rag.log:1-10` 참조. One-command reproduce: `python -m eval.ragas_eval --output out/ragas_result.json` then `python scripts/compare_rag.py` (baseline_metrics vs improved_metrics).
+
+## 6. 검증
 
 ```bash
 pytest -q

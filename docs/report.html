@@ -111,6 +111,13 @@
   </div>
 </div>
 
+<!-- 1b. Evaluation Finding — Faithfulness but Wrong -->
+<div class="card" style="margin-top:16px;border-left:3px solid var(--yellow)">
+  <h3>1b · Evaluation Finding — Faithfulness 높으나 완전히 틀린 답변 (faithfulness-but-wrong)</h3>
+  <p style="font-size:13px">대표 실패: <span class="mono">자동 롤백 조건은?</span> → retrieved <span class="mono">경비 청구 가이드(식대 1인 3만원 …)</span> → <span class="mono">faithfulness 1.0</span> but completely wrong. faithfulness는 grounding만 측정하므로 검색이 틀리면 완벽히 근거 있으나 완전히 틀린 답이 나온다. faithfulness alone is insufficient — retrieval relevance(<span class="mono">context_precision/recall</span>)와 answer correctness(<span class="mono">Hit@5</span>)를 별도 추적해야 한다. 전체 분석은 <a href="evaluation_failure_analysis.md">docs/evaluation_failure_analysis.md</a> 참조 — <span class="mono">out/ragas_result.json:13-20</span> (자동 롤백 faith 1.0, recall 0.2 vs gold <span class="mono">09_devops_deploy: Automatic rollback if error rate &gt;5% for 5 minutes (Prometheus alert)</span>), <span class="mono">out/ragas_result.json:319-326</span> (환경 프로모션 faith 1.0, recall 0.066) — 2~3 examples, 재현은 <span class="mono">python -m eval.ragas_eval --output out/ragas_result.json</span> + <span class="mono">python scripts/compare_rag.py</span> 로 out/baseline_metrics.json vs out/improved_metrics.json 비교. Repair: LangGraph rewrite node + query expansion(자동 롤백 → Prometheus + error rate 5% + Helm).</p>
+  <p style="font-size:11px;color:#8b949e;margin-top:6px">perplexity note: 3 of 50 samples with faithfulness 1.0 have recall &lt;0.3 — faithfulness cannot distinguish correct from wrong without recall. See also <span class="mono">docs/evaluation_failure_analysis.md</span> Appendix A (<span class="mono">rg "Automatic rollback 5% for 5 minutes" / "식대 1인 3만원"</span>).</p>
+</div>
+
 <!-- 2. Feedback Pie Chart -->
 <h2>2 · 피드백 분류 — 30행 파이 차트 + 루트코즈</h2>
 <div class="grid">
