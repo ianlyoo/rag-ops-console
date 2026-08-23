@@ -1,0 +1,460 @@
+{
+  "samples": [
+    {
+      "question": "Monitoring 스택과 SLO는?",
+      "reference_answer": "Prometheus+Grafana+Loki+PagerDuty, SLO 99.9% 가용성 p95 latency <300ms.",
+      "generation": "# DevOps Deployment Pipeline ## CI/CD - GitHub Actions: on push to main → lint (ruff) → test (pytest) → build (docker). - Required checks: 80% coverage, no high-severity vulnerabilities (Trivy). ## En",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 0.9091,
+      "faithfulness": 0.9792
+    },
+    {
+      "question": "자동 롤백 조건은?",
+      "reference_answer": "Prometheus 알림 기준 5분간 에러율 5% 초과 시 자동 롤백된다.",
+      "generation": "# 경비 청구 및 재무 가이드 ## 청구 한도 - 식대 1인 3만원, 교통비 실비, 숙박 1박 15만원 (수도권) / 12만원 (지방). - 월 한도: 팀원 50만원, 매니저 100만원. ## 절차 1. 영수증 스캔 후 경비 시스템(expenses.acme.example)에 업로드. 2. 매니저 승인 → 재무 승인 (영업일 2일 이내). 3. 지급: 매월 ",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 0.2,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "What is the Atlas API rate limit and what happens when exceeded?",
+      "reference_answer": "100 requests/minute per key (1000/day Free tier); 429 with Retry-After header.",
+      "generation": "# Atlas API — Developer Guide ## Base URL `https://api.atlas.example/v1` ## Authentication - Header: `Authorization: Bearer <API_KEY>` - API keys rotate every 90 days; old keys have 7-day grace period",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 1.0,
+      "faithfulness": 0.9804
+    },
+    {
+      "question": "What is Nimbus Note and what are its pricing tiers?",
+      "reference_answer": "Nimbus Note is a cloud note-taking/task app; Free (100 notes/1GB), Pro $8/mo (unlimited/50GB/history 1yr), Team $15/user/mo (SSO/admin/priority).",
+      "generation": "# Nimbus Note — Product FAQ ## What is Nimbus Note? Nimbus Note is a cloud-based note-taking and task management app with real-time collaboration. ## Pricing - Free: up to 100 notes, 1GB storage. - Pr",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 0.92,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "반차와 병가 정책은 무엇인가?",
+      "reference_answer": "반차는 오전/오후 4시간 단위, 병가는 유급 5일/년이며 진단서가 필요하다.",
+      "generation": "# 휴가 및 연차 정책 (Acme Corp Korea) ## 연차 부여 - 입사 1년 미만: 1개월 개근 시 1일, 최대 11일. - 1년 이상: 15일 기본 + 근속 2년마다 1일 추가, 최대 25일. ## 휴가 종류 - 연차, 반차(오전/오후 4시간), 병가(유급 5일/年, 진단서 필요), 경조사(결혼 5일, 부모상 5일). ## 신청 절차 - HR 포",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 0.5455,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "Batch size, epochs, early stopping 설정은?",
+      "reference_answer": "Batch size 32, epochs 10, early stopping patience 2 (monitor val_loss), mixed precision bf16 enabled.",
+      "generation": "# ML Model Training Guide (Internal) ## Environment - Python 3.11, PyTorch 2.4, CUDA 12.1, Docker image `ml-train:2026a`. - Experiment tracking: MLflow at mlflow.acme.example. ## Data - Training data ",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "Acme Corp의 원격근무 핵심 시간(core hours)은 언제인가?",
+      "reference_answer": "핵심 시간은 10:00부터 16:00 KST이며 이 시간 동안 Slack/Email로 연락 가능해야 한다.",
+      "generation": "# Acme Corp Remote Work Policy (2026) ## Overview Acme Corp supports flexible remote work to promote work-life balance while maintaining productivity and collaboration. ## Eligibility - All full-time ",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 0.2667,
+      "faithfulness": 0.9787
+    },
+    {
+      "question": "원격근무 정책은 언제 검토되나?",
+      "reference_answer": "매년 Q1에 연간 검토되며 문의는 hr@acme.example이다.",
+      "generation": "# 경비 청구 및 재무 가이드 ## 청구 한도 - 식대 1인 3만원, 교통비 실비, 숙박 1박 15만원 (수도권) / 12만원 (지방). - 월 한도: 팀원 50만원, 매니저 100만원. ## 절차 1. 영수증 스캔 후 경비 시스템(expenses.acme.example)에 업로드. 2. 매니저 승인 → 재무 승인 (영업일 2일 이내). 3. 지급: 매월 ",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 0.25,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "입사 1년 이상 직원의 연차는 며칠인가?",
+      "reference_answer": "기본 15일에 근속 2년마다 1일 추가, 최대 25일이다.",
+      "generation": "# 휴가 및 연차 정책 (Acme Corp Korea) ## 연차 부여 - 입사 1년 미만: 1개월 개근 시 1일, 최대 11일. - 1년 이상: 15일 기본 + 근속 2년마다 1일 추가, 최대 25일. ## 휴가 종류 - 연차, 반차(오전/오후 4시간), 병가(유급 5일/年, 진단서 필요), 경조사(결혼 5일, 부모상 5일). ## 신청 절차 - HR 포",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 0.75,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "원격근무 신청은 얼마 전에 HR 포털에 제출해야 하나?",
+      "reference_answer": "시작일 최소 2주 전에 HR 포털에 제출하고 매니저 승인과 HR 확인(5영업일 이내)이 필요하다.",
+      "generation": "# 휴가 및 연차 정책 (Acme Corp Korea) ## 연차 부여 - 입사 1년 미만: 1개월 개근 시 1일, 최대 11일. - 1년 이상: 15일 기본 + 근속 2년마다 1일 추가, 최대 25일. ## 휴가 종류 - 연차, 반차(오전/오후 4시간), 병가(유급 5일/年, 진단서 필요), 경조사(결혼 5일, 부모상 5일). ## 신청 절차 - HR 포",
+      "retrieved_count": 3,
+      "context_precision": 0.0,
+      "context_recall": 0.1429,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "ML training optimizer와 learning rate는 무엇인가?",
+      "reference_answer": "AdamW, lr 3e-4, weight_decay 0.01, cosine scheduler with warmup 500 steps.",
+      "generation": "# ML Model Training Guide (Internal) ## Environment - Python 3.11, PyTorch 2.4, CUDA 12.1, Docker image `ml-train:2026a`. - Experiment tracking: MLflow at mlflow.acme.example. ## Data - Training data ",
+      "retrieved_count": 3,
+      "context_precision": 0.6667,
+      "context_recall": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "What does HTTP 429 mean in Atlas API?",
+      "reference_answer": "Rate limited — Retry-After header indicates seconds to wait.",
+      "generation": "# Atlas API — Developer Guide ## Base URL `https://api.atlas.example/v1` ## Authentication - Header: `Authorization: Bearer <API_KEY>` - API keys rotate every 90 days; old keys have 7-day grace period",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 0.6667,
+      "faithfulness": 0.9804
+    },
+    {
+      "question": "GDPR에서 user rights 5가지는?",
+      "reference_answer": "Access, rectification, erasure(right to be forgotten), portability, objection이며 30일 내 처리한다.",
+      "generation": "# Data Privacy & GDPR Compliance ## Principles - Lawfulness, purpose limitation, data minimization, accuracy, storage limitation, integrity. ## User Rights - Access, rectification, erasure (\"right to ",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 0.75,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "SEV1 incident response time은 얼마인가?",
+      "reference_answer": "SEV1 Critical(데이터 유출/활발한 익스플로잇)은 1시간 내 대응이다.",
+      "generation": "# Security Incident Response Playbook ## Severity Levels - SEV1 Critical: data breach, active exploitation — response < 1 hour. - SEV2 High: vulnerability with exploit potential — response < 4 hours. ",
+      "retrieved_count": 3,
+      "context_precision": 0.6667,
+      "context_recall": 0.4,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "경조사 휴가는 얼마인가?",
+      "reference_answer": "결혼 5일, 부모상 5일이다.",
+      "generation": "# 휴가 및 연차 정책 (Acme Corp Korea) ## 연차 부여 - 입사 1년 미만: 1개월 개근 시 1일, 최대 11일. - 1년 이상: 15일 기본 + 근속 2년마다 1일 추가, 최대 25일. ## 휴가 종류 - 연차, 반차(오전/오후 4시간), 병가(유급 5일/年, 진단서 필요), 경조사(결혼 5일, 부모상 5일). ## 신청 절차 - HR 포",
+      "retrieved_count": 3,
+      "context_precision": 0.6667,
+      "context_recall": 0.75,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "경비 청구 절차 3단계는?",
+      "reference_answer": "1) 영수증 스캔 expenses.acme.example 업로드 2) 매니저→재무 승인(영업일 2일) 3) 매월 15일/말일 정산 지급이다.",
+      "generation": "# 경비 청구 및 재무 가이드 ## 청구 한도 - 식대 1인 3만원, 교통비 실비, 숙박 1박 15만원 (수도권) / 12만원 (지방). - 월 한도: 팀원 50만원, 매니저 100만원. ## 절차 1. 영수증 스캔 후 경비 시스템(expenses.acme.example)에 업로드. 2. 매니저 승인 → 재무 승인 (영업일 2일 이내). 3. 지급: 매월 ",
+      "retrieved_count": 3,
+      "context_precision": 1.0,
+      "context_recall": 0.9474,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "경비 청구 식대와 숙박 한도는?",
+      "reference_answer": "식대 1인 3만원, 숙박 수도권 15만원/1박 지방 12만원이다.",
+      "generation": "# 경비 청구 및 재무 가이드 ## 청구 한도 - 식대 1인 3만원, 교통비 실비, 숙박 1박 15만원 (수도권) / 12만원 (지방). - 월 한도: 팀원 50만원, 매니저 100만원. ## 절차 1. 영수증 스캔 후 경비 시스템(expenses.acme.example)에 업로드. 2. 매니저 승인 → 재무 승인 (영업일 2일 이내). 3. 지급: 매월 ",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 0.8889,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "미사용 연차 이월과 연차 촉진 제도는?",
+      "reference_answer": "익년 3월까지 이월 가능, 이후 소멸. 12월 1일까지 미사용 연차 사용 계획서 제출을 요청받는 연차 촉진 제도가 있다.",
+      "generation": "# 휴가 및 연차 정책 (Acme Corp Korea) ## 연차 부여 - 입사 1년 미만: 1개월 개근 시 1일, 최대 11일. - 1년 이상: 15일 기본 + 근속 2년마다 1일 추가, 최대 25일. ## 휴가 종류 - 연차, 반차(오전/오후 4시간), 병가(유급 5일/年, 진단서 필요), 경조사(결혼 5일, 부모상 5일). ## 신청 절차 - HR 포",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 0.7647,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "ML 실험 트래킹과 환경은?",
+      "reference_answer": "Python 3.11, PyTorch 2.4, CUDA 12.1, Docker ml-train:2026a, MLflow at mlflow.acme.example.",
+      "generation": "# ML Model Training Guide (Internal) ## Environment - Python 3.11, PyTorch 2.4, CUDA 12.1, Docker image `ml-train:2026a`. - Experiment tracking: MLflow at mlflow.acme.example. ## Data - Training data ",
+      "retrieved_count": 3,
+      "context_precision": 1.0,
+      "context_recall": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "GDPR 요청 처리 기한과 접수처는?",
+      "reference_answer": "30일 이내에 privacy@acme.example로 처리한다.",
+      "generation": "# Data Privacy & GDPR Compliance ## Principles - Lawfulness, purpose limitation, data minimization, accuracy, storage limitation, integrity. ## User Rights - Access, rectification, erasure (\"right to ",
+      "retrieved_count": 3,
+      "context_precision": 1.0,
+      "context_recall": 0.3333,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "P1 에스컬레이션 절차는?",
+      "reference_answer": "즉시 엔지니어링 온콜을 호출하고 Slack #support-escalation에 알린다.",
+      "generation": "# 고객 지원 운영 가이드 ## 채널 - 이메일 support@acme.example, 채팅 위젯(웹/앱), 전화 1588-0000 (평일 09:00–18:00 KST). ## 티켓 분류 - 일반문의, 버그제보, 결제/환불, 계정/보안. - 우선순위: P1(서비스 장애), P2(기능 오류), P3(일반). ## SLA - P1: 1시간 내 첫 응답, 4시간",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 0.5,
+      "faithfulness": 0.9865
+    },
+    {
+      "question": "Lessons Learned와 액션 아이템은 어디서 추적하나?",
+      "reference_answer": "5영업일 내 포스트모템을 작성하고 액션 아이템은 Jira에서 추적한다.",
+      "generation": "# ML Model Training Guide (Internal) ## Environment - Python 3.11, PyTorch 2.4, CUDA 12.1, Docker image `ml-train:2026a`. - Experiment tracking: MLflow at mlflow.acme.example. ## Data - Training data ",
+      "retrieved_count": 3,
+      "context_precision": 0.0,
+      "context_recall": 0.0,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "고객 지원 P1 SLA 첫 응답과 해결 목표는?",
+      "reference_answer": "P1은 1시간 내 첫 응답, 4시간 내 해결 목표이다.",
+      "generation": "# 고객 지원 운영 가이드 ## 채널 - 이메일 support@acme.example, 채팅 위젯(웹/앱), 전화 1588-0000 (평일 09:00–18:00 KST). ## 티켓 분류 - 일반문의, 버그제보, 결제/환불, 계정/보안. - 우선순위: P1(서비스 장애), P2(기능 오류), P3(일반). ## SLA - P1: 1시간 내 첫 응답, 4시간",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 0.875,
+      "faithfulness": 0.9865
+    },
+    {
+      "question": "환불 정책에서 7일 기준은 무엇인가?",
+      "reference_answer": "결제 후 7일 이내 전액 환불, 이후에는 사용일수 차감한 부분 환불이며 동일 결제수단으로 3~5영업일 처리된다.",
+      "generation": "# Data Privacy & GDPR Compliance ## Principles - Lawfulness, purpose limitation, data minimization, accuracy, storage limitation, integrity. ## User Rights - Access, rectification, erasure (\"right to ",
+      "retrieved_count": 3,
+      "context_precision": 0.6667,
+      "context_recall": 0.6875,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "Evaluation metrics와 harness는?",
+      "reference_answer": "accuracy, F1 macro, calibration ECE를 lm-eval harness로 held-out 평가한다.",
+      "generation": "# ML Model Training Guide (Internal) ## Environment - Python 3.11, PyTorch 2.4, CUDA 12.1, Docker image `ml-train:2026a`. - Experiment tracking: MLflow at mlflow.acme.example. ## Data - Training data ",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 0.7273,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "월 경비 한도와 금지 항목은?",
+      "reference_answer": "팀원 월 50만원 매니저 100만원, 주류/개인용품/벌금은 청구 불가이다.",
+      "generation": "# 경비 청구 및 재무 가이드 ## 청구 한도 - 식대 1인 3만원, 교통비 실비, 숙박 1박 15만원 (수도권) / 12만원 (지방). - 월 한도: 팀원 50만원, 매니저 100만원. ## 절차 1. 영수증 스캔 후 경비 시스템(expenses.acme.example)에 업로드. 2. 매니저 승인 → 재무 승인 (영업일 2일 이내). 3. 지급: 매월 ",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 0.7,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "What SDKs are available for Atlas API and where?",
+      "reference_answer": "Python, TypeScript, Go SDKs at github.com/atlas-sdk.",
+      "generation": "# Atlas API — Developer Guide ## Base URL `https://api.atlas.example/v1` ## Authentication - Header: `Authorization: Bearer <API_KEY>` - API keys rotate every 90 days; old keys have 7-day grace period",
+      "retrieved_count": 3,
+      "context_precision": 0.6667,
+      "context_recall": 1.0,
+      "faithfulness": 0.9804
+    },
+    {
+      "question": "재현성(reproducibility)을 위해 무엇을 로그하나?",
+      "reference_answer": "Seed 42, deterministic cuDNN, git commit과 data hash를 로그한다.",
+      "generation": "# Data Privacy & GDPR Compliance ## Principles - Lawfulness, purpose limitation, data minimization, accuracy, storage limitation, integrity. ## User Rights - Access, rectification, erasure (\"right to ",
+      "retrieved_count": 3,
+      "context_precision": 0.0,
+      "context_recall": 0.1111,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "Triage에서 severity 할당 기한은?",
+      "reference_answer": "온콜 엔지니어가 30분 이내에 severity를 할당한다.",
+      "generation": "# Security Incident Response Playbook ## Severity Levels - SEV1 Critical: data breach, active exploitation — response < 1 hour. - SEV2 High: vulnerability with exploit potential — response < 4 hours. ",
+      "retrieved_count": 3,
+      "context_precision": 0.0,
+      "context_recall": 0.0,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "고객 지원 채널 3가지는?",
+      "reference_answer": "이메일 support@acme.example, 채팅 위젯(웹/앱), 전화 1588-0000 평일 09-18시 KST.",
+      "generation": "# 고객 지원 운영 가이드 ## 채널 - 이메일 support@acme.example, 채팅 위젯(웹/앱), 전화 1588-0000 (평일 09:00–18:00 KST). ## 티켓 분류 - 일반문의, 버그제보, 결제/환불, 계정/보안. - 우선순위: P1(서비스 장애), P2(기능 오류), P3(일반). ## SLA - P1: 1시간 내 첫 응답, 4시간",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 0.9333,
+      "faithfulness": 0.9865
+    },
+    {
+      "question": "What export formats and bulk limits does Nimbus Note support?",
+      "reference_answer": "Markdown, PDF, HTML and bulk export up to 1000 notes at once.",
+      "generation": "# Nimbus Note — Product FAQ ## What is Nimbus Note? Nimbus Note is a cloud-based note-taking and task management app with real-time collaboration. ## Pricing - Free: up to 100 notes, 1GB storage. - Pr",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "교통비와 재무 승인 기한은?",
+      "reference_answer": "교통비는 실비 정산이며 재무 승인은 영업일 2일 이내다.",
+      "generation": "# 경비 청구 및 재무 가이드 ## 청구 한도 - 식대 1인 3만원, 교통비 실비, 숙박 1박 15만원 (수도권) / 12만원 (지방). - 월 한도: 팀원 50만원, 매니저 100만원. ## 절차 1. 영수증 스캔 후 경비 시스템(expenses.acme.example)에 업로드. 2. 매니저 승인 → 재무 승인 (영업일 2일 이내). 3. 지급: 매월 ",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 0.5,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "How does collaboration permission work in Nimbus Note?",
+      "reference_answer": "Share with view/comment/edit permissions and per-paragraph comment threads.",
+      "generation": "# Nimbus Note — Product FAQ ## What is Nimbus Note? Nimbus Note is a cloud-based note-taking and task management app with real-time collaboration. ## Pricing - Free: up to 100 notes, 1GB storage. - Pr",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "Helm chart 위치와 readiness probe는?",
+      "reference_answer": "infra/helm/에 Helm 차트, readiness probe는 /healthz이다.",
+      "generation": "# DevOps Deployment Pipeline ## CI/CD - GitHub Actions: on push to main → lint (ruff) → test (pytest) → build (docker). - Required checks: 80% coverage, no high-severity vulnerabilities (Trivy). ## En",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 0.4286,
+      "faithfulness": 0.9792
+    },
+    {
+      "question": "경비 지급일과 문의처는?",
+      "reference_answer": "매월 15일과 말일에 정산 지급, 문의 finance@acme.example 또는 Slack #finance-help.",
+      "generation": "# 경비 청구 및 재무 가이드 ## 청구 한도 - 식대 1인 3만원, 교통비 실비, 숙박 1박 15만원 (수도권) / 12만원 (지방). - 월 한도: 팀원 50만원, 매니저 100만원. ## 절차 1. 영수증 스캔 후 경비 시스템(expenses.acme.example)에 업로드. 2. 매니저 승인 → 재무 승인 (영업일 2일 이내). 3. 지급: 매월 ",
+      "retrieved_count": 3,
+      "context_precision": 1.0,
+      "context_recall": 0.75,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "환경 프로모션과 배포 전략은?",
+      "reference_answer": "dev→staging→production 수동 승인 게이트, Kubernetes EKS Helm rolling update maxUnavailable 25%, readiness /healthz.",
+      "generation": "# 경비 청구 및 재무 가이드 ## 청구 한도 - 식대 1인 3만원, 교통비 실비, 숙박 1박 15만원 (수도권) / 12만원 (지방). - 월 한도: 팀원 50만원, 매니저 100만원. ## 절차 1. 영수증 스캔 후 경비 시스템(expenses.acme.example)에 업로드. 2. 매니저 승인 → 재무 승인 (영업일 2일 이내). 3. 지급: 매월 ",
+      "retrieved_count": 3,
+      "context_precision": 0.0,
+      "context_recall": 0.0667,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "How often do Atlas API keys rotate and what is the grace period?",
+      "reference_answer": "Every 90 days with 7-day grace for old keys.",
+      "generation": "# Atlas API — Developer Guide ## Base URL `https://api.atlas.example/v1` ## Authentication - Header: `Authorization: Bearer <API_KEY>` - API keys rotate every 90 days; old keys have 7-day grace period",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 0.9,
+      "faithfulness": 0.9804
+    },
+    {
+      "question": "수습 기간 중 원격근무 신청이 가능한가?",
+      "reference_answer": "3개월 수습 이후 모든 정규직이 신청 가능하나 랩/제조 등 현장 장비 필수 역할은 제외된다.",
+      "generation": "# 휴가 및 연차 정책 (Acme Corp Korea) ## 연차 부여 - 입사 1년 미만: 1개월 개근 시 1일, 최대 11일. - 1년 이상: 15일 기본 + 근속 2년마다 1일 추가, 최대 25일. ## 휴가 종류 - 연차, 반차(오전/오후 4시간), 병가(유급 5일/年, 진단서 필요), 경조사(결혼 5일, 부모상 5일). ## 신청 절차 - HR 포",
+      "retrieved_count": 3,
+      "context_precision": 0.0,
+      "context_recall": 0.1333,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "원격근무 유연 시작 시간(flexible start)은 몇 시부터 가능한가?",
+      "reference_answer": "07:00부터 10:00 사이에 유연하게 시작할 수 있으며 8시간 근무를 채운다.",
+      "generation": "# 휴가 및 연차 정책 (Acme Corp Korea) ## 연차 부여 - 입사 1년 미만: 1개월 개근 시 1일, 최대 11일. - 1년 이상: 15일 기본 + 근속 2년마다 1일 추가, 최대 25일. ## 휴가 종류 - 연차, 반차(오전/오후 4시간), 병가(유급 5일/年, 진단서 필요), 경조사(결혼 5일, 부모상 5일). ## 신청 절차 - HR 포",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 0.25,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "Atlas API base URL and auth header are what?",
+      "reference_answer": "Base https://api.atlas.example/v1 with header Authorization: Bearer <API_KEY>.",
+      "generation": "# Atlas API — Developer Guide ## Base URL `https://api.atlas.example/v1` ## Authentication - Header: `Authorization: Bearer <API_KEY>` - API keys rotate every 90 days; old keys have 7-day grace period",
+      "retrieved_count": 3,
+      "context_precision": 0.6667,
+      "context_recall": 1.0,
+      "faithfulness": 0.9804
+    },
+    {
+      "question": "Data privacy 6 principles는?",
+      "reference_answer": "Lawfulness, purpose limitation, data minimization, accuracy, storage limitation, integrity.",
+      "generation": "# Data Privacy & GDPR Compliance ## Principles - Lawfulness, purpose limitation, data minimization, accuracy, storage limitation, integrity. ## User Rights - Access, rectification, erasure (\"right to ",
+      "retrieved_count": 3,
+      "context_precision": 0.6667,
+      "context_recall": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "Incident response의 containment 이후 단계는 무엇인가?",
+      "reference_answer": "Eradicate(패치/악성 아티팩트 제거) → Recover(클린 백업 복구 및 무결성 검증) → Lessons Learned(5영업일 내 포스트모템) 순이다.",
+      "generation": "# Security Incident Response Playbook ## Severity Levels - SEV1 Critical: data breach, active exploitation — response < 1 hour. - SEV2 High: vulnerability with exploit potential — response < 4 hours. ",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 0.3333,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "Non-adequate 국가로의 데이터 이전은 어떻게 하나?",
+      "reference_answer": "Standard Contractual Clauses(SCC)를 사용하며 DPA는 acme.example/dpa에서 제공된다.",
+      "generation": "# Data Privacy & GDPR Compliance ## Principles - Lawfulness, purpose limitation, data minimization, accuracy, storage limitation, integrity. ## User Rights - Access, rectification, erasure (\"right to ",
+      "retrieved_count": 3,
+      "context_precision": 1.0,
+      "context_recall": 0.5455,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "DevOps CI/CD 파이프라인 단계는?",
+      "reference_answer": "push to main → lint(ruff) → test(pytest) → build(docker), 필수 체크 80% 커버리지와 Trivy 고심각도 0.",
+      "generation": "# DevOps Deployment Pipeline ## CI/CD - GitHub Actions: on push to main → lint (ruff) → test (pytest) → build (docker). - Required checks: 80% coverage, no high-severity vulnerabilities (Trivy). ## En",
+      "retrieved_count": 3,
+      "context_precision": 0.6667,
+      "context_recall": 0.75,
+      "faithfulness": 0.9792
+    },
+    {
+      "question": "연차 신청은 언제까지 해야 하며 승인자는 누구인가?",
+      "reference_answer": "HR 포털에서 최소 3영업일 전 신청하며 팀장 승인이 필요하다.",
+      "generation": "# 휴가 및 연차 정책 (Acme Corp Korea) ## 연차 부여 - 입사 1년 미만: 1개월 개근 시 1일, 최대 11일. - 1년 이상: 15일 기본 + 근속 2년마다 1일 추가, 최대 25일. ## 휴가 종류 - 연차, 반차(오전/오후 4시간), 병가(유급 5일/年, 진단서 필요), 경조사(결혼 5일, 부모상 5일). ## 신청 절차 - HR 포",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 0.6667,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "로그와 마케팅 동의의 retention 기간은?",
+      "reference_answer": "로그 90일 후 익명화, 마케팅 동의는 철회 시까지, 계정 데이터는 삭제 +30일 백업 삭제이다.",
+      "generation": "# Data Privacy & GDPR Compliance ## Principles - Lawfulness, purpose limitation, data minimization, accuracy, storage limitation, integrity. ## User Rights - Access, rectification, erasure (\"right to ",
+      "retrieved_count": 3,
+      "context_precision": 0.0,
+      "context_recall": 0.0714,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "How does Nimbus Note offline mode work?",
+      "reference_answer": "Offline mode caches last 500 notes and syncs changes when online.",
+      "generation": "# Nimbus Note — Product FAQ ## What is Nimbus Note? Nimbus Note is a cloud-based note-taking and task management app with real-time collaboration. ## Pricing - Free: up to 100 notes, 1GB storage. - Pr",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "SEV1 발생 시 고객 통지 기한은?",
+      "reference_answer": "GDPR에 따라 72시간 내 고객 통지, 내부 통지는 #incident-response 채널이다.",
+      "generation": "# Security Incident Response Playbook ## Severity Levels - SEV1 Critical: data breach, active exploitation — response < 1 hour. - SEV2 High: vulnerability with exploit potential — response < 4 hours. ",
+      "retrieved_count": 3,
+      "context_precision": 0.6667,
+      "context_recall": 0.3636,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "What encryption and 2FA does Nimbus Note use?",
+      "reference_answer": "AES-256 at rest, TLS 1.3 in transit, 2FA via TOTP.",
+      "generation": "# Nimbus Note — Product FAQ ## What is Nimbus Note? Nimbus Note is a cloud-based note-taking and task management app with real-time collaboration. ## Pricing - Free: up to 100 notes, 1GB storage. - Pr",
+      "retrieved_count": 3,
+      "context_precision": 0.6667,
+      "context_recall": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "question": "P2와 P3 SLA는 어떻게 다른가?",
+      "reference_answer": "P2는 4시간 응답/24시간 해결, P3는 24시간 응답이다.",
+      "generation": "# 고객 지원 운영 가이드 ## 채널 - 이메일 support@acme.example, 채팅 위젯(웹/앱), 전화 1588-0000 (평일 09:00–18:00 KST). ## 티켓 분류 - 일반문의, 버그제보, 결제/환불, 계정/보안. - 우선순위: P1(서비스 장애), P2(기능 오류), P3(일반). ## SLA - P1: 1시간 내 첫 응답, 4시간",
+      "retrieved_count": 3,
+      "context_precision": 0.3333,
+      "context_recall": 0.5714,
+      "faithfulness": 0.9865
+    }
+  ],
+  "aggregate": {
+    "avg_context_precision": 0.42,
+    "avg_context_recall": 0.627,
+    "avg_faithfulness": 0.9953,
+    "num_samples": 50
+  }
+}

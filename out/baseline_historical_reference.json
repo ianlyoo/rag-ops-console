@@ -1,0 +1,12 @@
+﻿{
+  "historical_recorded_baseline": true,
+  "note": "Historical reported baseline 0.3102/0.512/0.971 (hash, no rerank, no rewrite) — exact environment not reproduced in current repro. Measured hash-no-rerank baseline is 0.3666/0.6133/0.9934 (see out/baseline_metrics.json). This file preserves historical aggregate for reference only, not via current execution.",
+  "aggregate": {
+    "avg_context_precision": 0.3102,
+    "avg_context_recall": 0.512,
+    "avg_faithfulness": 0.971,
+    "num_samples": 50
+  },
+  "recorded_at": "2026-08-22 (docs/report.html, reproducibility.md)",
+  "env_not_reproduced": true
+}

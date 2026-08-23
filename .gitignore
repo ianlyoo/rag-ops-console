@@ -14,6 +14,11 @@ out/*
 !out/sheets_mock.csv
 !out/ops_demo.png
 !out/.gitkeep
+!out/baseline_metrics.json
+!out/improved_metrics.json
+!out/comparison.md
+!out/baseline_historical_reference.json
+!out/baseline_historical_reference_aggregate.json
 chroma_db/
 *.log
 !out/*.log

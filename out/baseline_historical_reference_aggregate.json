@@ -1,0 +1,8 @@
+﻿{
+  "aggregate": {
+    "avg_context_precision": 0.3102,
+    "avg_context_recall": 0.512,
+    "avg_faithfulness": 0.971,
+    "num_samples": 50
+  }
+}
