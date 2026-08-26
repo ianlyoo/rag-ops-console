@@ -54,6 +54,7 @@ python -m eval.ragas_eval --output out/ragas_result.json
 - **Observability** — LangGraph node traces (retrieve → grade → rewrite → generate → human review) and ragas metrics aggregated per run, visible in `docs/report.html`.
 - **Feedback-loop to Sheets** — `monitor/feedback_classifier.py` classifies customer feedback (positive/bug/improvement) and `monitor/feedback_to_sheet.py` loads to Google Sheets and curates Top-5 questions.
 - **Developer-tools and typescript** — local dashboard `monitor/dashboard.py` and report HTML operate offline; the repo boundary avoids duplicating offline synthetic-data code from `llm-eval-pipeline`.
+- **추천질문 생성** — RAGAS 기반 추천질문 품질 평가
 
 ## Architecture: langgraph and vectordb pipeline with google-sheets
 
