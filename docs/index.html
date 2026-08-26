@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>rag-ops-console — Online RAG Ops console with Chroma VectorDB and LangGraph 5 nodes — monitor retrieval quality with RAGAS and Sheets feedback loop in production.</title>
+<meta name="description" content="Online RAG Ops console with Chroma VectorDB and LangGraph 5 nodes — monitor retrieval quality with RAGAS and Sheets feedback loop in production.">
+<link rel="canonical" href="https://ianlyoo.github.io/rag-ops-console/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="rag-ops-console — Online RAG Ops console with Chroma VectorDB and LangGraph 5 nodes — monitor retrieval quality with RAGAS and Sheets feedback loop in production.">
+<meta property="og:description" content="Online RAG Ops console with Chroma VectorDB and LangGraph 5 nodes — monitor retrieval quality with RAGAS and Sheets feedback loop in production.">
+<meta property="og:url" content="https://ianlyoo.github.io/rag-ops-console/">
+<meta property="og:image" content="https://ianlyoo.github.io/rag-ops-console/assets/social-preview.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:image:type" content="image/png">
+<meta property="og:site_name" content="rag-ops-console">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="rag-ops-console — Online RAG Ops console with Chroma VectorDB and LangGraph 5 nodes — monitor retrieval quality with RAGAS and Sheets feedback loop in production.">
+<meta name="twitter:description" content="Online RAG Ops console with Chroma VectorDB and LangGraph 5 nodes — monitor retrieval quality with RAGAS and Sheets feedback loop in production.">
+<meta name="twitter:image" content="https://ianlyoo.github.io/rag-ops-console/assets/social-preview.png">
+<meta name="twitter:url" content="https://ianlyoo.github.io/rag-ops-console/">
+<meta name="author" content="ianlyoo">
+<meta name="robots" content="index, follow">
+<link rel="stylesheet" href="./styles.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareSourceCode","name":"rag-ops-console","description":"Online RAG Ops console with Chroma VectorDB and LangGraph 5 nodes — monitor retrieval quality with RAGAS and Sheets feedback loop in production.","version":"0.1.0","codeRepository":"https://github.com/ianlyoo/rag-ops-console","url":"https://ianlyoo.github.io/rag-ops-console/","programmingLanguage":"Python","license":"https://spdx.org/licenses/MIT","keywords":["google-sheets","langgraph","llm-judge","rag","ragas","vectordb","chroma","developer-tools","feedback-loop","observability","typescript","rag-ops"],"author":{"@type":"Person","name":"ianlyoo"}}</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header role="banner">
+<div class="container">
+<h1>rag-ops-console</h1>
+<p class="tagline">Online RAG Ops console with Chroma VectorDB and LangGraph 5 nodes — monitor retrieval quality with RAGAS and Sheets feedback loop in production.</p>
+<nav aria-label="Primary">
+<ul>
+<li><a href="https://github.com/ianlyoo/rag-ops-console">GitHub Repository</a></li>
+<li><a href="https://github.com/ianlyoo/rag-ops-console/blob/main/README.md">README</a></li>
+<li><a href="https://github.com/ianlyoo/rag-ops-console/issues">Issues</a></li>
+<li><a href="https://ianlyoo.github.io/rag-ops-console/">Pages</a></li>
+</ul>
+</nav>
+<nav aria-label="Language">
+<ul>
+<li><a href="https://github.com/ianlyoo/rag-ops-console/blob/main/README.md" lang="en">English</a> | <a href="https://github.com/ianlyoo/rag-ops-console/blob/main/README.md" lang="ko">한국어</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<main id="main">
+<div class="container">
+<section aria-labelledby="overview-heading">
+<h2 id="overview-heading">Overview</h2>
+<p>Online RAG operations console — Chroma VectorDB retrieval, LangGraph orchestration (retrieve → grade → rewrite → generate → human review), Deterministic RAG metrics + optional LLM-backed RAGAS evaluation, and customer feedback → Google Sheets monitoring in production.</p>
+<ul>
+<li>Python 3.11, Chroma persistent, LangGraph conditional routing</li>
+<li>Deterministic metrics by default; <code>ragas.evaluate()</code> when credentials present</li>
+<li>Feedback classification and Top-5 curated questions via <code>gspread</code></li>
+</ul>
+<p><a href="https://github.com/ianlyoo/rag-ops-console/blob/main/README.md">README</a> — <a href="https://github.com/ianlyoo/rag-ops-console/blob/main/docs/evaluation_failure_analysis.md">Failure Analysis</a> — <a href="https://github.com/ianlyoo/rag-ops-console/blob/main/docs/limits.md">Limits</a> — <a href="https://github.com/ianlyoo/rag-ops-console/blob/main/docs/reproducibility.md">Reproducibility</a></p>
+</section>
+<section aria-labelledby="install-heading">
+<h2 id="install-heading">Install</h2>
+<pre><code>git clone https://github.com/ianlyoo/rag-ops-console.git
+cd rag-ops-console
+python -m venv .venv
+# Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+pytest -q
+ruff check .</code></pre>
+<pre><code>python -c "from rag.vector_store import ingest; print(ingest(reset=False))"
+python -m graph.run --query "환불 정책" --log out/ops_rag.log
+python -m eval.ragas_eval --output out/ragas_result.json</code></pre>
+</section>
+<section aria-labelledby="benchmark-heading">
+<h2 id="benchmark-heading">Evaluation — Deterministic RAG metrics</h2>
+<p>Committed Deterministic metrics (not LLM-backed RAGAS): <code>0.42 / 0.627 / 0.9953</code> (context precision / recall / faithfulness) from <code>out/ragas_result.json</code> (50 samples, token overlap, no <code>answer_relevancy</code>).</p>
+<div class="limitations" role="note" aria-label="Limitations">
+<p><strong>Limitations adjacent to benchmark:</strong> Token-overlap proxy (no LLM evaluator); 50-sample offline run; optional LLM-backed RAGAS via <code>ragas.evaluate()</code> requires credentials and is not committed here; retrieval faithfulness alone can be 1.0 on wrong document — pipeline tracks relevance separately (see <code>docs/evaluation_failure_analysis.md</code>).</p>
+</div>
+</section>
+<section aria-labelledby="pipeline-heading">
+<h2 id="pipeline-heading">Pipeline — VectorDB → LangGraph → RAGAS → Sheets</h2>
+<ul>
+<li><strong>VectorDB</strong> <code>rag/vector_store.py</code> — Chroma persistent embedding and rerank</li>
+<li><strong>LangGraph</strong> <code>graph/nodes.py</code> — retrieve → grade → rewrite → generate → human review gate</li>
+<li><strong>Evaluation</strong> <code>eval/ragas_eval.py</code> — deterministic metrics + optional <code>ragas.evaluate()</code></li>
+<li><strong>Feedback</strong> <code>monitor/feedback_classifier.py</code> — positive/negative/bug/improvement + root-cause</li>
+<li><strong>Ops</strong> <code>monitor/feedback_to_sheet.py</code> — Sheets load + Top-5 question curation</li>
+</ul>
+</section>
+<section aria-labelledby="links-heading">
+<h2 id="links-heading">Project links</h2>
+<ul>
+<li><a href="https://github.com/ianlyoo/rag-ops-console">Repository: https://github.com/ianlyoo/rag-ops-console</a></li>
+<li><a href="https://github.com/ianlyoo/rag-ops-console/issues">Issues</a></li>
+<li><a href="https://ianlyoo.github.io/rag-ops-console/">Pages canonical: https://ianlyoo.github.io/rag-ops-console/</a></li>
+<li><a href="https://github.com/ianlyoo/rag-ops-console/blob/main/docs/report.html">Report HTML</a></li>
+<li><a href="https://github.com/ianlyoo/rag-ops-console/blob/main/LICENSE">License: MIT</a></li>
+<li><a href="https://github.com/ianlyoo/rag-ops-console/blob/main/README.md">README</a></li>
+</ul>
+</section>
+<section aria-labelledby="license-heading">
+<h2 id="license-heading">License and ownership</h2>
+<p>Owner: <a href="https://github.com/ianlyoo">ianlyoo</a> — License: <a href="https://spdx.org/licenses/MIT">MIT</a> — Version: 0.1.0 — Language: Python</p>
+</section>
+</div>
+</main>
+<footer role="contentinfo">
+<div class="container">
+<p>© 2026 ianlyoo — <a href="https://github.com/ianlyoo/rag-ops-console">rag-ops-console</a> — <a href="https://spdx.org/licenses/MIT">MIT</a> — <a href="https://ianlyoo.github.io/rag-ops-console/sitemap.xml">Sitemap</a> — <a href="https://github.com/ianlyoo/rag-ops-console/blob/main/README.md">README</a></p>
+</div>
+</footer>
+</body>
+</html>
