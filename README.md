@@ -1,220 +1,126 @@
 # rag-ops-console
 
-Online RAG 운영 콘솔 — Deterministic RAG evaluation + optional LLM-backed RAGAS · VectorDB 검색 · LangGraph 오케스트레이션 · 답변 검증 · 고객 피드백 모니터링→Sheets · 추천질문 큐레이션을 한 곳에서 운영하는 실전 RAG Ops.
+[한국어](README.ko.md)
 
-> **운영 포커스** — RAG 운영 콘솔이 다루는 핵심 운영 업무
->
-> 본 콘솔은 **VectorDB 검색 → LangGraph → Deterministic RAG evaluation + optional LLM-backed RAGAS → 답변 검증 → 피드백 모니터링→Sheets → 추천질문 큐레이션** 파이프라인으로 구현한다.
->
-> **평가 모드:** Deterministic RAG metrics — no API key, token overlap, CI/regression / Optional LLM-backed RAGAS mode — ragas.evaluate(), credentials needed — committed 수치는 Deterministic RAG metrics (0.42/0.627/0.9953)이며 LLM 키가 있을 때만 ragas LLM evaluator가 동작한다.
+[![CI](https://github.com/ianlyoo/rag-ops-console/actions/workflows/ci.yml/badge.svg)](https://github.com/ianlyoo/rag-ops-console/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Release: v0.1.0](https://img.shields.io/badge/Release-v0.1.0-blue.svg)](https://github.com/ianlyoo/rag-ops-console/releases/tag/v0.1.0)
+[![Pages](https://img.shields.io/badge/Pages-live-brightgreen.svg)](https://ianlyoo.github.io/rag-ops-console/)
 
-## Pipeline — 운영 파이프라인
+Online RAG Ops console with Chroma VectorDB and LangGraph 5 nodes — monitor retrieval quality with RAGAS and Sheets feedback loop in production.
 
-| # | 파이프라인 단계 | 모듈 | 설명 |
-|---|-----------|------|------|
-| 1 | **VectorDB 검색** | `rag/vector_store.py` | Chroma persistent 임베딩 · 검색 · rerank (실명 VectorDB) |
-| 2 | **LangGraph 오케스트레이션** | `graph/` | retrieve → grade → rewrite → generate → human review 4~5노드 조건부 라우팅 |
-| 3 | **Deterministic RAG 평가** | `eval/ragas_eval.py` | Deterministic RAG metrics — context precision / recall · faithfulness (token overlap, no answer relevancy) · optional LLM-backed RAGAS via `ragas.evaluate()` |
-| 4 | **답변 검증** | `eval/`, `graph/nodes.py` | citation / policy / hallucination 검증 + human_review gate (automated) → human queue 라우팅 |
-| 5 | **고객 피드백 모니터링→Sheets** | `monitor/feedback_classifier.py` + `monitor/feedback_to_sheet.py` | 피드백 분류(긍정/부정/버그/개선) + Google Sheets 적재 |
-| 6 | **추천질문 큐레이션** | `monitor/feedback_to_sheet.py` | Sheets 기반 상위 5개 추천 질문 큐레이션 |
+> Companion repos: online console here, offline eval at [llm-eval-pipeline](https://github.com/ianlyoo/llm-eval-pipeline) (synthetic-data/harness), packet generation at [signal-foundry](https://github.com/ianlyoo/signal-foundry).
 
-## Offline / Online 경계
+## Quick start — rag and vectordb with Chroma and LangGraph
 
-> **이 레포(B)는 online RAG 운영 콘솔 — 실명 VectorDB(Chroma), LangGraph, RAGAS는 여기서 담당한다.**
->
-> - **Offline 품질/학습 평가** — synthetic data 생성, Rule 검증, LLM Judge, 오답 taxonomy, lm-eval / PyTorch 실험은 [`llm-eval-pipeline`](https://github.com/ianlyoo/llm-eval-pipeline) (A)에서 담당한다.
-> - **Online 운영(B)** — VectorDB 검색, LangGraph 오케스트레이션, RAGAS 평가, 답변 검증, 고객 피드백 모니터링→Sheets, 추천질문 큐레이션이 본 레포의 책임이다.
-> - **데이터 계약:** B는 A 산출물을 **consume**한다 — 예: `llm-eval-pipeline/data/synthetic_qa.jsonl`을 검색·평가 입력으로 링크/복사해 활용하되, **A의 `eval/` 코드를 복사하지 않는다** (Cross-repo code duplication is checked with a directory diff during validation).
-> - B는 A 없이도 동작하나, A의 합성 QA가 있으면 더 풍부한 RAGAS/회귀 평가가 가능하다.
+Install from tarball (version-pinned):
 
-```
-llm-eval-pipeline (A, offline)          rag-ops-console (B, online)  ← this repo
-┌─────────────────────────┐             ┌──────────────────────────────┐
-│ synthetic_qa.jsonl ─────┼── consume ─►│ VectorDB(Chroma) 검색        │
-│ rule/judge/lm-eval      │  (data)     │ LangGraph 5노드              │
-│ pytorch_experiment      │  contract   │ RAGAS + 답변 검증            │
-└─────────────────────────┘             │ 피드백→Sheets→추천질문       │
-                                        └──────────────────────────────┘
+```bash
+gh release download v0.1.0 --pattern "*.tgz" --repo ianlyoo/rag-ops-console
+npm install ./rag-ops-console-*.tgz
 ```
 
-## 아키텍처
+From source with bun (frozen lockfile):
 
-```mermaid
-flowchart LR
-    A[문서<br/>docs/data] --> B[VectorDB<br/>Chroma<br/>rag/vector_store.py]
-    B --> C[LangGraph<br/>retrieve→grade→rewrite→generate→human review<br/>graph/nodes.py]
-    C --> D[답변 검증<br/>citation/policy<br/>eval/]
-    D --> E[RAGAS 평가<br/>eval/ragas_eval.py]
-    E --> F[고객 피드백<br/>monitor/feedback_classifier.py]
-    F --> G[Sheets 적재<br/>monitor/feedback_to_sheet.py]
-    G --> H[추천질문 큐레이션<br/>Top-5]
-    H -.->|개선사항 발굴| B
-
-    style B fill:#1f6feb,stroke:#388bfd,color:#fff
-    style C fill:#8957e5,stroke:#a475f9,color:#fff
-    style E fill:#da3633,stroke:#f85149,color:#fff
-    style G fill:#238636,stroke:#2ea043,color:#fff
+```bash
+git clone https://github.com/ianlyoo/rag-ops-console.git
+cd rag-ops-console
+bun install --frozen-lockfile
+bun run build
 ```
 
-## 구조
-
-```
-rag-ops-console/
-├── rag/                        # VectorDB 검색 (Chroma)
-│   ├── __init__.py
-│   └── vector_store.py         # Chroma persistent + 임베딩/검색/rerank
-├── graph/                      # LangGraph 오케스트레이션
-│   ├── __init__.py
-│   ├── state.py                # LangGraph state 정의
-│   └── nodes.py                # retrieve→grade→rewrite→generate→human review
-├── eval/                       # RAGAS + 답변 검증
-│   ├── __init__.py
-│   └── ragas_eval.py           # RAGAS faithfulness/precision/recall
-├── monitor/                    # 고객 피드백 운영
-│   ├── __init__.py
-│   ├── feedback_classifier.py  # 긍정/부정/버그/개선 + root-cause
-│   └── feedback_to_sheet.py    # Google Sheets 적재 + 추천질문 Top-5
-├── docs/
-│   ├── architecture.mmd        # 운영 아키텍처 Mermaid
-│   └── report.html             # RAGAS/피드백 리포트
-├── data/                       # 샘플 문서/피드백 (대용량 원본은 .gitignore)
-│   └── .gitkeep
-├── tests/
-│   └── test_scaffold.py
-├── .github/workflows/ci.yml
-├── requirements.txt
-└── LICENSE
-```
-
-## 운영 흐름
-
-1. **RAG 문서 생성·관리** — 문서를 청킹해 Chroma에 적재, 버전별 persistent 디렉터리로 관리.
-2. **AI 데이터 모니터링** — LangGraph 트레이스(노드별 latency/grade 결과)와 RAGAS 지표를 `eval/ragas_eval.py`에서 집계.
-3. **답변 검증** — citation 유무, policy 위반, hallucination 여부를 결정론적 룰 + RAGAS faithfulness로 이중 검증, 불확실 케이스는 human_review gate(automated)가 `needs_review`로 판정해 human queue로 라우팅. Current human_review is an automated gate (citation/policy check) that routes to human queue; a full review UI (Approve/Reject/Edit/Note with SQLite/CSV) can be added on top.
-4. **고객 피드백 모니터링** — `monitor/feedback_classifier.py`가 `query/response/user_feedback`을 긍정/부정/버그/개선 + root-cause 태그로 분류.
-5. **Sheets → 추천질문** — `monitor/feedback_to_sheet.py`가 분류 결과를 Google Sheets(`gspread`)에 적재하고, 빈도/실패 유형 기반 상위 5개 추천 질문을 큐레이션해 운영자가 선제안 콘텐츠로 활용.
-
-## 설치
+Python environment (primary runtime):
 
 ```bash
 python -m venv .venv
-# Windows: .venv\Scripts\activate
-# macOS/Linux: source .venv/bin/activate
+# Windows alternative: .venv\Scripts\activate
 pip install -r requirements.txt
 pytest -q
 ruff check .
 ```
 
-> **Heavy deps:** `chromadb`, `langgraph`, `ragas`는 본 레포의 핵심이므로 `requirements.txt`에 포함된다. 로컬 경량 실행 시 `pip install chromadb langgraph` 없이도 `pytest -q` / `ruff check .`는 통과하나, VectorDB/LangGraph 실행은 설치가 필요하다.
-
-## CI
-
-`.github/workflows/ci.yml` — `ubuntu-latest`, Python 3.11, `pip install -r requirements.txt` → `pytest -q` → `ruff check .`
-
-## Offline / Online 상세
-
-| 구분 | 담당 | 기술 | 산출물 |
-|------|------|------|--------|
-| **Offline (A)** | 품질·학습 평가 | synthetic data, rule filter, LLM Judge, taxonomy, lm-eval, PyTorch | `llm-eval-pipeline/data/synthetic_qa.jsonl` 등 |
-| **Online (B, this repo)** | RAG 운영 | **VectorDB(Chroma)**, **LangGraph**, **RAGAS**, gspread | 검색/생성/검증/모니터링/Sheets |
-
-B는 A의 코드를 복사하지 않고 A 산출물을 데이터로 consume한다. 경계 위반은 `diff -r llm-eval-pipeline/eval rag-ops-console/eval`로 검증한다.
-
-## Evaluation
-
-### Deterministic RAG metrics — no API key, token overlap, CI/regression
-
-No API key required. Used for CI and regression testing — token-overlap 기반 context precision/recall/faithfulness (3 metrics only; `answer relevancy` 미구현으로 표기 제거 — `Select-String` 검색 0건 확인). Committed 수치 0.42/0.627/0.9953은 Deterministic RAG metrics이며 표 제목은 Deterministic RAG Evaluation으로 명시한다. `eval/ragas_eval.py :: _context_precision_deterministic` / `_context_recall_deterministic` / `_faithfulness_deterministic`에서 token overlap으로 산출, `pytest`/`ruff` CI에서 재현 가능.
-
-### Optional LLM-backed RAGAS mode — ragas.evaluate(), credentials needed
-
-Uses `ragas.evaluate()` with LLM-backed metrics when credentials are available — `ragas.metrics faithfulness/context_precision` 등 LLM evaluator 기반. `eval/ragas_eval.py :: _try_ragas_evaluate()`가 `ragas.metrics.*` + `ragas.evaluate` + `datasets.Dataset` 경로로 시도하며, API 키 없으면 deterministic fallback으로 자동 전환된다. 이 모드의 수치는 committed가 아니며 별도 측정 시 `ragas_library_attempt` 필드로 기록된다.
-
-### Evaluation Finding
-
-Extractive generation produced near-perfect grounding scores (1.0) even when retrieval selected the wrong document (e.g., 자동 롤백 조건 → 경비 청구 문서). This showed faithfulness alone was insufficient, so the pipeline separately tracks retrieval relevance and answer correctness.
-
-자세한 실패 사례 분석은 `docs/evaluation_failure_analysis.md`를 참고한다.
-
-## Demo — 운영 리포트 + 대시보드
-
-> VectorDB(Chroma) 실명 검색 로그와 LangGraph 5-node 트레이스를 브라우저에서 확인하는 데모. Deterministic RAG metrics Before→After (optional LLM-backed RAGAS 비교는 키 있을 때 별도) + 피드백 파이 차트는 `docs/report.html`에, 실시간 검색은 `monitor/dashboard.py`에 있다.
-
-### 1) 운영 리포트 (브라우저)
+Run VectorDB ingest and console:
 
 ```bash
-# 파일로 바로 열기 (크롬/엣지)
-start docs/report.html          # Windows
-open docs/report.html           # macOS
-# 또는
-python -m http.server 8000
-# → http://localhost:8000/docs/report.html
-```
-
-| 리포트 섹션 | 소스 | 시각화 |
-|---|---|---|
-| Deterministic RAG metrics Before→After | `out/ragas_result.json` (50 samples, agg 0.42/0.627/0.9953 — Deterministic RAG metrics, not LLM-backed RAGAS) | 테이블 + Δ% (report.html §1) |
-| 피드백 분류 파이 차트 | `out/sheets_mock.csv` (긍정10/버그10/개선9/지식부족1) | Chart.js + SVG fallback §2 |
-| LangGraph 트레이스 | `out/ops_rag.log` (retrieve→grade→generate→human_review) | `<pre>` 로그 §3 |
-| 아키텍처 Mermaid | `docs/architecture.mmd` | flowchart TB (Chroma·LangGraph·RAGAS·gspread) |
-
-캡처: `out/ops_demo.png` (리포트+대시보드 렌더링 증거) — 파일 경로는 `.gitignore`에서 `!out/ops_demo.png`로 허용됨.
-
-### 2) Streamlit 데모 대시보드 (30초)
-
-```bash
-python -m venv .venv
-# Windows: .venv\Scripts\activate
-# macOS/Linux: source .venv/bin/activate
-pip install -r requirements.txt   # chromadb, langgraph, ragas, gspread, streamlit, sentence-transformers
-streamlit run monitor/dashboard.py --server.headless true
-# → http://localhost:8501
-```
-
-> **human_review 정확화** — 현재 `graph/nodes.py :: human_review`는 자동화된 gate(citation/policy/overlap 검증)로 `approved`/`needs_review`를 판정해 human queue로 라우팅한다. 전체 리뷰 UI(Approve/Reject/Edit/Note, SQLite/CSV)는 이 gate 위에 추가할 수 있으며, 대시보드는 `needs_review` 항목을 큐로 표시한다. Current human_review is an automated gate (citation/policy check) that routes to human queue; a full review UI (Approve/Reject/Edit/Note with SQLite/CSV) can be added on top.
-
-대시보드 구성 (실명 VectorDB 검색 로그 표시):
-
-- **VectorDB stats** — `rag/vector_store.py :: get_chroma_client()` collection `rag_chunks` count (10 chunks, `data/chroma`)
-- **샘플 쿼리 입력** — `환불 정책` 기본값, `search(query, top_k=5)` score/distance/rerank_score + 문서 스니펫
-- **LangGraph 노드 로그** — `graph/run.py :: run_query()` retrieve→grade→generate→human_review gate(automated), `graded`/`review_status`(`approved`/`needs_review`→human queue)/`citations` pill + `<code>` 트레이스
-- **피드백 stats** — `out/sheets_mock.csv` bar_chart (긍정/버그/개선/지식부족), by_root_cause
-- **Deterministic RAG metrics Before→After** — `out/ragas_result.json` aggregate (Deterministic; optional LLM-backed RAGAS 비교는 키 있을 때 별도)
-- **추천질문 Top-5** — `monitor/feedback_to_sheet.py :: curate_top_questions()` 키워드 클러스터링
-- **원시 로그 탭** — `out/ops_rag.log` / `out/feedback_to_sheet.log`
-
-종료: `Ctrl+C` 또는 `streamlit run ... --server.headless true` 백그라운드라면 `taskkill /IM streamlit.exe /F` (Windows)
-
-### 3) 전체 파이프라인 30초 재현
-
-```bash
-# 1) VectorDB ingest (최초 1회)
-python -c "from rag.vector_store import ingest; print(ingest(reset=False))"  # 10 chunks
-
-# 2) LangGraph 단일 질의 + 로그
+python -c "from rag.vector_store import ingest; print(ingest(reset=False))"
 python -m graph.run --query "환불 정책" --log out/ops_rag.log
-
-# 3) RAGAS 50 samples
 python -m eval.ragas_eval --output out/ragas_result.json
+```
 
-# 4) 피드백 30행 분류 + Sheets 적재 + Top-5
+## Use cases for ragas and llm-judge with observability and feedback-loop
+
+- **RAG retrieval quality** — Chroma vectordb search and rerank exposed via `rag/vector_store.py`; deterministic token-overlap scoring provides CI baseline without credentials.
+- **LLM Judge and ragas** — `eval/ragas_eval.py` runs deterministic metrics by default; optional `ragas.evaluate()` path activates when credentials are present, logged as `ragas_library_attempt`.
+- **Observability** — LangGraph node traces (retrieve → grade → rewrite → generate → human review) and ragas metrics aggregated per run, visible in `docs/report.html`.
+- **Feedback-loop to Sheets** — `monitor/feedback_classifier.py` classifies customer feedback (positive/bug/improvement) and `monitor/feedback_to_sheet.py` loads to Google Sheets and curates Top-5 questions.
+- **Developer-tools and typescript** — local dashboard `monitor/dashboard.py` and report HTML operate offline; the repo boundary avoids duplicating offline synthetic-data code from `llm-eval-pipeline`.
+
+## Architecture: langgraph and vectordb pipeline with google-sheets
+
+> `docs → vectordb → langgraph → ragas → feedback-loop → google-sheets`
+
+```mermaid
+flowchart LR
+    A[docs] --> B[vectordb<br/>Chroma]
+    B --> C[langgraph<br/>retrieve→grade→rewrite→generate→human review]
+    C --> D[ragas<br/>eval/ragas_eval.py]
+    D --> E[feedback_classifier]
+    E --> F[google-sheets<br/>feedback_to_sheet.py]
+    F --> G[Top-5 curation]
+```
+
+| Stage | Module | Role |
+|---|---|---|
+| vectordb (chroma) | `rag/vector_store.py` | Persistent embedding, search, rerank |
+| langgraph | `graph/nodes.py`, `graph/state.py` | 5-node conditional routing, human review gate |
+| ragas (deterministic) | `eval/ragas_eval.py` | context precision/recall/faithfulness via token overlap |
+| observability | `graph/run.py`, `out/ops_rag.log` | Latency and grade tracing |
+| feedback-loop | `monitor/feedback_classifier.py` | Classification + root-cause |
+| google-sheets | `monitor/feedback_to_sheet.py` | `gspread` load + Top-5 curation |
+
+Offline synthetic-data stays in `llm-eval-pipeline`; this repo consumes it as data contract without copying `eval/` logic.
+
+## Benchmark: ragas and llm-judge evaluation in measured workloads
+
+Measured Deterministic metrics (token overlap, 50 samples, no `answer_relevancy`):
+
+- `context precision 0.42`
+- `context recall 0.627`
+- `faithfulness 0.9953`
+
+Source: `out/ragas_result.json` via `python -m eval.ragas_eval`. LLM-backed `ragas.evaluate()` comparison requires credentials and is not part of committed aggregate.
+
+Limitations adjacent to benchmark: token-overlap proxy not LLM evaluator, one run per condition, 50 samples, answer relevancy not implemented, optional LLM-backed ragas requires credentials, retrieval faithfulness can be 1.0 on wrong document — pipeline tracks relevance separately, policy may change, no billing.
+
+See `docs/evaluation_failure_analysis.md` for the grounding vs relevance failure study.
+
+## Project structure
+
+```
+rag-ops-console/
+├── rag/                        # Chroma vectordb
+│   └── vector_store.py
+├── graph/                      # LangGraph (state, nodes, run)
+├── eval/                       # ragas_eval (deterministic + optional ragas)
+├── monitor/                    # feedback_classifier, feedback_to_sheet, dashboard
+├── docs/                       # Pages, report.html, architecture.mmd
+├── data/                       # sample docs/feedback (large originals gitignored)
+├── tests/
+├── .github/workflows/ci.yml
+└── requirements.txt
+```
+
+## Reproducibility
+
+```bash
+python -c "from rag.vector_store import ingest; print(ingest(reset=False))"
+python -m eval.ragas_eval --output out/ragas_result.json
 python -m monitor.feedback_classifier --input monitor/data/feedback_sample.csv --output out/classified_sample.csv
 python -m monitor.feedback_to_sheet
-
-# 5) 리포트/대시보드 확인
-start docs/report.html
-streamlit run monitor/dashboard.py
 ```
 
-스크린샷 생성 (headless):
-
-```bash
-python -c "from PIL import Image; img=Image.open('out/ops_demo.png'); img.show()"
-# 또는 재생성
-python scripts/capture_demo.py   # PIL 합성 — report.html + dashboard 스냅샷 (offline 생성)
-```
+Report: `docs/report.html` — Deterministic Before→After, feedback chart, LangGraph trace.
 
 ## License
 
-MIT — see [LICENSE](LICENSE)
+MIT — see [LICENSE](LICENSE).
