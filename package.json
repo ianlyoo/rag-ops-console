@@ -1,0 +1,31 @@
+{
+  "name": "rag-ops-console",
+  "version": "0.1.0",
+  "description": "Online RAG Ops console with Chroma VectorDB and LangGraph 5 nodes — monitor retrieval quality with RAGAS and Sheets feedback loop in production.",
+  "license": "MIT",
+  "homepage": "https://github.com/ianlyoo/rag-ops-console",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ianlyoo/rag-ops-console.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ianlyoo/rag-ops-console/issues"
+  },
+  "keywords": [
+    "chroma",
+    "developer-tools",
+    "feedback-loop",
+    "google-sheets",
+    "langgraph",
+    "llm-judge",
+    "observability",
+    "rag",
+    "rag-ops",
+    "ragas",
+    "typescript",
+    "vectordb"
+  ],
+  "author": "ianlyoo",
+  "type": "module",
+  "private": false
+}

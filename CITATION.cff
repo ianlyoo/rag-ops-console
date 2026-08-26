@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "rag-ops-console"
+version: 0.1.0
+license: MIT
+description: "Online RAG Ops console with Chroma VectorDB and LangGraph 5 nodes — monitor retrieval quality with RAGAS and Sheets feedback loop in production."
+keywords:
+  - chroma
+  - developer-tools
+  - feedback-loop
+  - google-sheets
+  - langgraph
+  - llm-judge
+  - observability
+  - rag
+  - rag-ops
+  - ragas
+  - typescript
+  - vectordb
+authors:
+  - family-names: Lyoo
+    given-names: Ian
+    alias: ianlyoo
+repository-code: "https://github.com/ianlyoo/rag-ops-console"
+url: "https://ianlyoo.github.io/rag-ops-console/"
+homepage: "https://github.com/ianlyoo/rag-ops-console"
