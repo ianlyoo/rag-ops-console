@@ -20,14 +20,29 @@ API:
 
 from __future__ import annotations
 
-import hashlib
 import json
 import os
-import re
 from pathlib import Path
 from typing import Any
 
 import chromadb
+
+from rag.embeddings import (
+    _embed,
+)
+from rag.embeddings import (
+    _hash_embed as _hash_embed,
+)
+from rag.embeddings import (
+    _load_sentence_transformer as _load_sentence_transformer,
+)
+from rag.embeddings import (
+    _model_cache as _model_cache,
+)
+from rag.embeddings import (
+    _resolve_model_name as _resolve_model_name,
+)
+from rag.retrieval import rank_results
 
 # ---------------------------------------------------------------------------
 # 경로 상수
@@ -56,98 +71,6 @@ def _resolve_synthetic_qa_path() -> Path | None:
 
 
 SYNTHETIC_QA_FALLBACK = None  # resolved lazily via _resolve_synthetic_qa_path()
-
-# ---------------------------------------------------------------------------
-# Embedding — sentence-transformers with hash fallback
-# ---------------------------------------------------------------------------
-_model_cache: dict[str, Any] = {}
-
-
-def _resolve_model_name() -> str:
-    """환경변수 RAG_EMBEDDING_MODEL > multilingual 기본 > mini 기본."""
-    env = os.environ.get("RAG_EMBEDDING_MODEL", "").strip()
-    if env:
-        return env
-    return "paraphrase-multilingual-MiniLM-L12-v2"
-
-
-def _load_sentence_transformer(model_name: str):  # type: ignore[no-untyped-def]
-    """SentenceTransformer 로드 — 캐시. 실패 시 None 반환 (caller가 fallback)."""
-    if model_name in _model_cache:
-        return _model_cache[model_name]
-    try:
-        from sentence_transformers import SentenceTransformer
-
-        model = SentenceTransformer(model_name)
-        _model_cache[model_name] = model
-        return model
-    except Exception as e:
-        print(f"[vector_store] sentence-transformers load failed ({model_name}): {e}")
-        _model_cache[model_name] = None
-        return None
-
-
-def _hash_embed(texts: list[str], dim: int = 384) -> list[list[float]]:
-    """결정론적 hash 기반 임베딩 — 모델 다운로드 실패/오프라인 폴백.
-
-    각 텍스트를 토큰 단위로 해시하여 dim 차원 sparse 벡터 생성 후 L2 정규화.
-    Chroma cosine 유사도와 호환되도록 정규화한다.
-    """
-    import math
-
-    vectors: list[list[float]] = []
-    for text in texts:
-        vec = [0.0] * dim
-        tokens = re.findall(r"\w+", text.lower())
-        if not tokens:
-            tokens = [text.lower()]
-        for tok in tokens:
-            h = int(hashlib.md5(tok.encode()).hexdigest(), 16)
-            idx = h % dim
-            # TF 가중치 유사 효과: 동일 토큰 반복 시 누적
-            vec[idx] += 1.0
-        # L2 normalize
-        norm = math.sqrt(sum(x * x for x in vec))
-        if norm > 0:
-            vec = [x / norm for x in vec]
-        vectors.append(vec)
-    return vectors
-
-
-def _embed(texts: list[str]) -> list[list[float]]:
-    """임베딩 — sentence-transformers 우선, 실패 시 hash fallback.
-
-    Env RAG_EMBEDDING_MODEL=hash 이면 즉시 hash fallback (baseline 재현용).
-    """
-    if not texts:
-        return []
-    model_name = _resolve_model_name()
-    # baseline repro: hash 강제 시 ST 시도 없이 즉시 hash
-    if model_name == "hash":
-        return _hash_embed(texts)
-    model = _load_sentence_transformer(model_name)
-    if model is not None:
-        try:
-            embeddings = model.encode(texts, normalize_embeddings=True)
-            # encode returns numpy array
-            if hasattr(embeddings, "tolist"):
-                return embeddings.tolist()  # type: ignore[no-any-return]
-            return [list(e) for e in embeddings]
-        except Exception as e:
-            print(f"[vector_store] embedding encode failed, hash fallback: {e}")
-    # 폴백: all-MiniLM-L6-v2 시도
-    if model_name != "all-MiniLM-L6-v2":
-        model2 = _load_sentence_transformer("all-MiniLM-L6-v2")
-        if model2 is not None:
-            try:
-                embeddings = model2.encode(texts, normalize_embeddings=True)
-                if hasattr(embeddings, "tolist"):
-                    return embeddings.tolist()  # type: ignore[no-any-return]
-                return [list(e) for e in embeddings]
-            except Exception:
-                pass
-    return _hash_embed(texts)
-
 
 # ---------------------------------------------------------------------------
 # Chroma client helpers
@@ -255,7 +178,8 @@ def ingest(
         reset: True이면 기존 컬렉션 삭제 후 재생성.
 
     Returns:
-        적재된 문서 수.
+        적재된 문서 수. Repeated chunk IDs keep the first non-empty document;
+        IDs already stored in the collection are skipped.
     """
     if docs is None:
         docs = load_synthetic_chunks()
@@ -285,7 +209,14 @@ def ingest(
     except Exception:
         existing = set()
 
-    new_docs = [d for d in docs if d.get("chunk_id") not in existing]
+    # Chroma requires unique IDs in each add call. Keep the first occurrence,
+    # matching synthetic chunk loading and idempotence across ingest calls.
+    new_docs = []
+    for doc in docs:
+        chunk_id = doc["chunk_id"]
+        if chunk_id not in existing:
+            new_docs.append(doc)
+            existing.add(chunk_id)
     if not new_docs:
         print(f"[vector_store] all {len(docs)} docs already ingested — skip")
         return 0
@@ -371,49 +302,10 @@ def search(
         print(f"[vector_store] query failed: {e}")
         return []
 
-    docs = result.get("documents", [[]])[0] or []
-    metas = result.get("metadatas", [[]])[0] or []
-    dists = result.get("distances", [[]])[0] or []
-    ids = result.get("ids", [[]])[0] or []
-
-    items: list[dict[str, Any]] = []
-    for doc_text, meta, dist, cid in zip(docs, metas, dists, ids, strict=False):
-        # Chroma cosine distance: 0=동일, 2=반대. score = 1 - distance (유사도)
-        score = 1.0 - float(dist) if dist is not None else 0.0
-        # hash fallback은 distance 범위가 다를 수 있어 클리핑
-        score = max(0.0, min(1.0, score))
-        if score_threshold is not None and score < score_threshold:
-            continue
-        m = meta or {}
-        items.append(
-            {
-                "doc_id": m.get("doc_id", ""),
-                "chunk_id": m.get("chunk_id", cid),
-                "text": doc_text or "",
-                "score": score,
-                "distance": float(dist) if dist is not None else None,
-                "metadata": m,
-            }
-        )
-
-    # rerank: 1) 키워드 겹침 보너스 2) 점수 내림차순
-    # RAG_DISABLE_RERANK=1 이면 보너스 없이 score 순으로 정렬 (baseline 재현용)
-    disable_rerank = os.environ.get("RAG_DISABLE_RERANK", "").strip().lower() in ("1", "true", "yes")
-    if disable_rerank:
-        for item in items:
-            item["rerank_score"] = item["score"]
-    else:
-        query_tokens = set(re.findall(r"\w+", query.lower()))
-        for item in items:
-            doc_tokens = set(re.findall(r"\w+", item["text"].lower()))
-            overlap = len(query_tokens & doc_tokens)
-            # 보너스: overlap 비율 * 0.1 (최대 0.1 가산, rerank 목적)
-            bonus = (overlap / max(len(query_tokens), 1)) * 0.1
-            item["rerank_score"] = item["score"] + bonus
-
-    items.sort(key=lambda x: x["rerank_score"], reverse=True)
-
-    return items[:top_k]
+    return rank_results(
+        result, query, top_k, score_threshold,
+        disable_rerank=os.environ.get("RAG_DISABLE_RERANK", "").strip().lower() in ("1", "true", "yes"),
+    )
 
 
 def ingest_from_synthetic_qa(

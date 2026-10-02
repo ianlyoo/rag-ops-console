@@ -97,3 +97,23 @@ def test_search_score_threshold_filters() -> None:
     # 낮은 threshold면 결과 있음
     results2 = search("환불 정책", top_k=5, persist_dir=persist, collection_name=coll, score_threshold=0.0)
     assert len(results2) >= 1
+
+
+def test_ingest_duplicate_ids_in_one_request_keeps_first_document(tmp_path, monkeypatch) -> None:
+    """Repeated chunks must be idempotent even across the 50-document batch boundary."""
+    from rag.vector_store import get_chroma_client, ingest
+
+    monkeypatch.setenv("RAG_EMBEDDING_MODEL", "hash")
+    docs = [
+        {"doc_id": "fixture", "chunk_id": f"chunk-{i}", "text": f"Original document {i}"}
+        for i in range(55)
+    ]
+    repeated = {**docs[0], "text": "Conflicting later copy"}
+    request = [docs[0], repeated, *docs[1:], repeated]
+
+    assert ingest(request, persist_dir=tmp_path, collection_name="dedup") == 55
+    assert ingest(request, persist_dir=tmp_path, collection_name="dedup") == 0
+    collection = get_chroma_client(tmp_path).get_collection("dedup")
+    assert collection.count() == 55
+    assert collection.get(ids=["chunk-0"])["documents"] == ["Original document 0"]
+    assert request[1]["text"] == "Conflicting later copy"
